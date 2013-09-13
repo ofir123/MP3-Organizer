@@ -11,13 +11,6 @@ class ConnectionException(Exception):
     pass
 
 
-class NotFoundException(Exception):
-    """
-    Thrown when the search result is empty.
-    """
-    pass
-
-
 class AmazonClient(object):
     """
     Supplies simple functions for finding an album in Amazon.
@@ -47,8 +40,8 @@ class AmazonClient(object):
         :type album: str.
         :param artist: The artist's name.
         :type artist: str.
-        :returns: list -- the ordered list of tracks in the given album.
-        :raises: NotFoundException.
+        :returns: list -- the ordered list of tracks in the given album,
+                          or None if no album was found.
         """
         if not self.is_connected():
             raise ConnectionException("Connection wasn't initialized")
@@ -64,7 +57,6 @@ class AmazonClient(object):
                 tracks_list = result.item.Tracks.Disc.getchildren()
                 result_artist = result.item.ItemAttributes.Artist
                 result_album = result.title
-                print "middle"
                 # Confirm with the user.
                 if prompt:
                     user_answer = raw_input("Found album '" + result_album + "' by '" +
@@ -81,7 +73,7 @@ class AmazonClient(object):
                 # This result wasn't an Audio CD. Move on to the next result.
                 pass
 
-        raise NotFoundException("The requested album couldn't be found on Amazon")
+        return None
 
 
 
