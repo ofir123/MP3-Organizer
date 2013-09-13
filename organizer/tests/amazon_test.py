@@ -20,20 +20,20 @@ class TestAmazon:
     """
     def test_no_connection(self, client):
         with pytest.raises(ConnectionException):
-            client.find_album(TEST_ALBUM, prompt=False)
+            client.find_album(TEST_ALBUM, prompt=False, web=False)
 
     def test_not_found(self, client):
         client.connect()
-        tracks_list = client.find_album(TEST_INVALID_ALBUM, prompt=False)
+        tracks_list = client.find_album(TEST_INVALID_ALBUM, prompt=False, web=False)
         assert not tracks_list
 
     def test_album_only(self, client):
         client.connect()
-        tracks_list = client.find_album(TEST_ALBUM, prompt=False)
+        tracks_list = client.find_album(TEST_ALBUM, prompt=False, web=False)
         assert tracks_list == TEST_TRACKS_LIST
 
     def test_album_and_artist(self, client):
         client.connect()
-        tracks_list = client.find_album(TEST_ALBUM, TEST_ARTIST, prompt=False)
+        tracks_list = client.find_album(TEST_ALBUM, TEST_ARTIST, prompt=False, web=False)
         assert tracks_list == TEST_TRACKS_LIST
 

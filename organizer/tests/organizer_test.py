@@ -26,21 +26,21 @@ class TestOrganizer:
     System tests for the entire organizer.
     """
     def test_path(self):
-        sys.argv.extend(["--path", TEST_PATH, "--fake", "--automatic"])
+        sys.argv.extend(["--path", TEST_PATH, "--fake", "--automatic", "--no-web"])
         assert organizer.main() == TEST_TRACKS_LIST
 
     def test_path_and_album(self):
         sys.argv.extend(["--path", TEST_PATH, "--album", TEST_ALBUM,
-                         "--fake", "--automatic"])
+                         "--fake", "--automatic", "--no-web"])
         assert organizer.main() == TEST_TRACKS_LIST
 
     def test_path_and_artist(self):
         sys.argv.extend(["--path", TEST_PATH, "--artist", TEST_ARTIST,
-                         "--fake", "--automatic"])
+                         "--fake", "--automatic", "--no-web"])
         assert organizer.main() == TEST_TRACKS_LIST
 
     def test_path_and_album_and_artist(self):
         sys.argv.extend(["--path", TEST_PATH, "--album", TEST_ALBUM,
-                         "--artist", TEST_ARTIST, "--fake", "--automatic"])
+                         "--artist", TEST_ARTIST, "--fake", "--automatic", "--no-web"])
         assert organizer.main() == TEST_TRACKS_LIST
 

@@ -15,7 +15,8 @@ def get_tracks_list(args):
         print "Checking Amazon for tracks info."
     amazon_client = AmazonClient()
     amazon_client.connect()
-    return amazon_client.find_album(args.album, args.artist, prompt=args.prompt)
+    return amazon_client.find_album(args.album, args.artist,
+                                    prompt=args.prompt, web=args.web)
 
 
 def get_arguments():
@@ -26,6 +27,7 @@ def get_arguments():
     artist - The album's artist (makes the search for lyrics and info easier).
     quiet - If true, no log messages will be displayed on the screen.
     automatic - If true, user will not be prompted to approve album correctness.
+    web - If true, a new tab in the browser will pop up with the album's information.
     fake - If true, path doesn't exist and no actual files will be changed.
     """
     parser = ArgumentParser()
@@ -39,6 +41,8 @@ def get_arguments():
                         help="Don't print any output")
     parser.add_argument("-t", "--automatic", action="store_false", dest="prompt", default=True,
                         help="Don't ask the user for input at certain points")
+    parser.add_argument("-w", "--no-web", action="store_false", dest="web", default=True,
+                        help="Don't open a new browser tab with the album's information")
     parser.add_argument("-f", "--fake", action="store_true", dest="fake", default=False,
                         help="Fake path for testing purposes")
     args = parser.parse_args()

@@ -1,5 +1,6 @@
 __author__ = 'Ofir'
 
+import webbrowser
 from amazon.api import AmazonAPI
 from account import ACCESS_KEY, SECRET_KEY, ASSOCIATE_TAG
 
@@ -32,7 +33,7 @@ class AmazonClient(object):
         self.amazon = AmazonAPI(ACCESS_KEY, SECRET_KEY, ASSOCIATE_TAG)
         self._connected = True
 
-    def find_album(self, album, artist=None, prompt=True):
+    def find_album(self, album, artist=None, prompt=True, web=True):
         """
         Searches Amazon for the artist and returns the results.
 
@@ -40,6 +41,10 @@ class AmazonClient(object):
         :type album: str.
         :param artist: The artist's name.
         :type artist: str.
+        :param prompt: Whether or not to prompt the user for approval.
+        :type prompt: bool.
+        :param web: Whether or not to open a browser with the album's informaion.
+        :type web: bool.
         :returns: list -- the ordered list of tracks in the given album,
                           or None if no album was found.
         """
@@ -57,6 +62,9 @@ class AmazonClient(object):
                 tracks_list = result.item.Tracks.Disc.getchildren()
                 result_artist = result.item.ItemAttributes.Artist
                 result_album = result.title
+                # Open the item's web page in a new tab, to help the user.
+                if web:
+                    webbrowser.open(result.item.DetailPageURL.text, new=2)
                 # Confirm with the user.
                 if prompt:
                     user_answer = raw_input("Found album '" + result_album + "' by '" +
