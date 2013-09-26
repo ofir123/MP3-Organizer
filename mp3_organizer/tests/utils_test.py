@@ -3,7 +3,7 @@ __author__ = 'Halti'
 import pytest
 import os.path
 from consts import *
-from organizer.file_utils import *
+from mp3_organizer.file_utils import *
 
 
 TEST_PATH = os.path.join("C:\\", TEST_ARTIST, TEST_ALBUM)

@@ -3,17 +3,20 @@ __author__ = 'Halti'
 import os.path
 from argparse import ArgumentParser
 
-from client.client import AmazonClient
+from clients.amazon_client import AmazonClient
 from file_utils import *
 
 
-def get_tracks_list(args):
+def get_album_data(args):
     """
-    Retrieves the tracks list from Amazon, using the Amazon client.
+    Retrieves the album data from Amazon, using the Amazon client.
+    :param args: The running parameters.
+    :type args: args.
+    :returns: The album data.
     """
     if args.verbose:
-        print "Checking Amazon for tracks info."
-    amazon_client = AmazonClient()
+        print "Checking Amazon for album data."
+    amazon_client = AmazonClient(artwork_folder=args.image_path)
     amazon_client.connect()
     return amazon_client.find_album(args.album, args.artist,
                                     prompt=args.prompt, web=args.web)
@@ -25,6 +28,8 @@ def get_arguments():
     path - The path of the album to organize.
     album - The album's name (makes the search for lyrics and info easier).
     artist - The album's artist (makes the search for lyrics and info easier).
+    genre - The album's genre.
+    image - The path to save the album's artwork.
     quiet - If true, no log messages will be displayed on the screen.
     automatic - If true, user will not be prompted to approve album correctness.
     web - If true, a new tab in the browser will pop up with the album's information.
@@ -37,6 +42,10 @@ def get_arguments():
                         help="The album's name")
     parser.add_argument("-a", "--artist", dest="artist",
                         help="The artist's name")
+    parser.add_argument("-g", "--genre", dest="genre",
+                        help="The album's genre")
+    parser.add_argument("-i", "--image", dest="image_path",
+                        help="The path to save album artwork")
     parser.add_argument("-q", "--quiet", action="store_false", dest="verbose", default=True,
                         help="Don't print any output")
     parser.add_argument("-t", "--automatic", action="store_false", dest="prompt", default=True,
@@ -48,8 +57,11 @@ def get_arguments():
     args = parser.parse_args()
 
     # Validate and fix arguments.
-    if not args.fake and not os.path.exists(args.path):
-        raise PathException("Invalid path")
+    if not args.fake:
+        if not os.path.exists(args.path):
+            raise PathException("Invalid path")
+        if not os.path.exists(args.image_path):
+            raise PathException("Invalid images path")
     if args.path.endswith(os.path.sep):
         args.path = os.path.dirname(args.path)
     args.album = get_album(args.path, args.album)
@@ -68,16 +80,16 @@ def main():
     args = get_arguments()
 
     # Get tracks list from Amazon.
-    tracks_list = get_tracks_list(args)
-    if not tracks_list:
+    album = get_album_data(args)
+    if not album:
         if args.verbose:
             print "No album was found. Exiting..."
         return
 
-    # For test - REMOVE!
+    # FOR TEST - REMOVE!
     if args.verbose:
-        print tracks_list
-    return tracks_list
+        print album.tracks_list
+    return album.tracks_list
 
 if __name__ == "__main__":
     main()

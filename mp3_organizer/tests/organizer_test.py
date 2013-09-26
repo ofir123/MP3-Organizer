@@ -3,7 +3,7 @@ __author__ = 'Halti'
 import sys
 import pytest
 from consts import *
-from organizer import organizer
+from mp3_organizer import organizer
 
 
 @pytest.fixture
