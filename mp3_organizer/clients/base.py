@@ -16,13 +16,16 @@ class Client(object):
     MAX_RESULTS = 10
     ARTWORK_EXTENSION = ".jpg"
 
-    def __init__(self, artwork_folder=None):
+    def __init__(self, artwork_folder=None, verbose=True):
         """
         Initializes the Amazon client.
         :param artwork_folder: The folder to save pictures in.
         :type artwork_folder: str.
+        :param verbose: Whether or not to print output.
+        :type verbose: bool.
         """
         self.artwork_folder = artwork_folder
+        self.verbose = verbose
         self._connected = False
 
     def is_connected(self):

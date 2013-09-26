@@ -2,7 +2,7 @@ __author__ = 'Halti'
 
 import sys
 import pytest
-from consts import *
+from test_consts import *
 from mp3_organizer import organizer
 
 

@@ -2,7 +2,7 @@ __author__ = 'Halti'
 
 import pytest
 import time
-from consts import *
+from test_consts import *
 from mp3_organizer.clients.amazon_client import *
 
 

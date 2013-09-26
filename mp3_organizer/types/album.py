@@ -31,3 +31,10 @@ class Album(object):
         self.year = year
         self.artwork_path = artwork_path
         self.tracks_list = tracks_list
+
+    def __repr__(self):
+        """
+        Prints the album data in the format <Artist> - <Album>.
+        :return: The string representing the album's data.
+        """
+        return self.artist + " - " + self.name
