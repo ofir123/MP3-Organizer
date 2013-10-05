@@ -11,6 +11,7 @@ from mutagen.id3 import TALB
 from mutagen.id3 import TCON
 from mutagen.id3 import TDRC
 from mutagen.id3 import APIC
+from mutagen.id3 import ID3NoHeaderError
 
 
 class FilesEditor(object):
@@ -30,11 +31,9 @@ class FilesEditor(object):
         :param verbose: Whether or not to print output.
         :type verbose: bool.
         """
+        self.path = path
         self.album = album
         self.verbose = verbose
-        # Get all file names and normalize them.
-        self.files = [x.lower().strip() for x in
-                      glob.glob(os.path.join(path, "*" + FilesEditor.FILES_EXTENSION))]
 
     def _find_track(self, track):
         """
@@ -43,14 +42,17 @@ class FilesEditor(object):
         :type track: track.
         :return: The track's file name, or None if not found.
         """
+        # Get all file names and normalize them.
+        files = [x.lower().strip() for x in
+                 glob.glob(os.path.join(self.path, "*" + FilesEditor.FILES_EXTENSION))]
         # Try and find the track's name.
-        for filename in self.files:
+        for filename in files:
             if track.title.lower() in filename:
                 if self.verbose:
                     print "Found track by its name."
                 return filename
         # Try and find the track's number.
-        for filename in self.files:
+        for filename in files:
             if track.number in filename:
                 if self.verbose:
                     print "Found track by its number."
@@ -67,13 +69,13 @@ class FilesEditor(object):
         :return: The mime string, or None if not supported.
         """
         extension = os.path.splitext(filename)[1]
-        if extension == "png":
+        if extension == ".png":
             return 'image/png'
-        if extension == "jpg" or extension == "jpeg":
+        if extension == ".jpg" or extension == ".jpeg":
             return 'image/jpeg'
         return None
 
-    def edit_track(self, track):
+    def edit_track(self, track, rename=True):
         """
         Edits a single track, according to the given track info.
         Changes the file's name, and the following ID3 tag fields:
@@ -81,6 +83,8 @@ class FilesEditor(object):
         Also empties the following fields: Grouping, Composer and Comments.
         :param track: The track's data object.
         :type track: track.
+        :param rename: Whether to rename the file or not.
+        :type rename: bool.
         :return: True if edited, False if not found.
         """
         if self.verbose:
@@ -88,15 +92,23 @@ class FilesEditor(object):
         filename = self._find_track(track)
         if not filename:
             return False
-        # Rename and add ID3 info.
-        new_name = os.path.join(os.path.dirname(filename), str(track),
-                                FilesEditor.FILES_EXTENSION)
-        os.rename(filename, new_name)
-        tag = ID3(new_name)
+        if rename:
+            # Rename and add ID3 info.
+            new_name = os.path.join(os.path.dirname(filename),
+                                    str(track)) + FilesEditor.FILES_EXTENSION
+            os.rename(filename, new_name)
+        else:
+            new_name = filename
+
+        # Edit ID3 information.
+        try:
+            tag = ID3(new_name)
+        except ID3NoHeaderError:
+            tag = ID3()
         tag.add(TRCK(encoding=3, text=track.number))
         tag.add(TIT2(encoding=3, text=track.title))
         tag.add(TPE1(encoding=3, text=self.album.artist))
-        tag.add(TPE2(encoding=3, text=track.artist))
+        tag.add(TPE2(encoding=3, text=self.album.artist))
         tag.add(TALB(encoding=3, text=self.album.name))
         tag.add(TCON(encoding=3, text=self.album.genre))
         tag.add(TDRC(encoding=3, text=str(self.album.year)))
@@ -116,7 +128,7 @@ class FilesEditor(object):
         tag.delall('TIT1')
         tag.delall('TPOS')
         tag.delall('TCMP')
-        tag.save()
+        tag.save(new_name)
         return True
 
     def edit_tracks(self, tracks_list):
