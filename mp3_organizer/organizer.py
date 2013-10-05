@@ -22,11 +22,16 @@ def get_album_data(args):
         client = client_class(artwork_folder=args.image_path)
         if args.verbose:
             print "Checking " + str(client) + " for album data."
-        client.connect()
-        result = client.find_album(args.album, args.artist,
-                                   prompt=args.prompt, web=args.web)
-        if result:
-            return result
+        try:
+            client.connect()
+            result = client.find_album(args.album, args.artist,
+                                       prompt=args.prompt, web=args.web)
+            if result:
+                return result
+        except Exception, e:
+            if args.verbose:
+                print e
+                print "Failed when using " + str(client) + "."
         if args.verbose:
             print "Proceeding to next client."
 
