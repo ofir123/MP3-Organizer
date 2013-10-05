@@ -2,24 +2,33 @@ __author__ = 'Halti'
 
 import os.path
 from argparse import ArgumentParser
-
-from clients.amazon_client import AmazonClient
+from mp3_organizer.clients.amazon.amazon_client import AmazonClient
+from mp3_organizer.clients.gracenote.gracenote_client import GracenoteClient
 from file_utils import *
+
+# The ordered clients list.
+CLIENTS_LIST = [GracenoteClient, AmazonClient]
 
 
 def get_album_data(args):
     """
-    Retrieves the album data from Amazon, using the Amazon client.
+    Retrieves the album data using the available clients.
+    Will try each client by their order until succeeded.
     :param args: The running parameters.
     :type args: args.
     :returns: The album data.
     """
-    if args.verbose:
-        print "Checking Amazon for album data."
-    amazon_client = AmazonClient(artwork_folder=args.image_path)
-    amazon_client.connect()
-    return amazon_client.find_album(args.album, args.artist,
-                                    prompt=args.prompt, web=args.web)
+    for client_class in CLIENTS_LIST:
+        client = client_class(artwork_folder=args.image_path)
+        if args.verbose:
+            print "Checking " + str(client) + " for album data."
+        client.connect()
+        result = client.find_album(args.album, args.artist,
+                                   prompt=args.prompt, web=args.web)
+        if result:
+            return result
+        if args.verbose:
+            print "Proceeding to next client."
 
 
 def get_arguments():
@@ -86,7 +95,7 @@ def main():
             print "No album was found. Exiting..."
         return
 
-    # FOR TEST - REMOVE!
+    # TODO - FOR TESTING PURPOSES.. REMOVE!!
     if args.verbose:
         print album.tracks_list
     return album.tracks_list

@@ -1,12 +1,12 @@
 __author__ = 'Ofir'
 
 import webbrowser
-import os.path
 import urllib2
-from amazon.api import AmazonAPI
-from amazon_account import ACCESS_KEY, SECRET_KEY, ASSOCIATE_TAG
+from amazon_api import AmazonAPI
+from mp3_organizer.clients.amazon.amazon_account import ACCESS_KEY, SECRET_KEY, ASSOCIATE_TAG
+from mp3_organizer.clients.base import Client, ConnectionException
 from mp3_organizer.types.album import Album
-from base import Client, ConnectionException
+from mp3_organizer.types.track import Track
 
 
 class AmazonClient(Client):
@@ -37,9 +37,9 @@ class AmazonClient(Client):
         :type artist: str.
         :param prompt: Whether or not to prompt the user for approval.
         :type prompt: bool.
-        :param web: Whether or not to open a browser with the album's informaion.
+        :param web: Whether or not to open a browser with the album's information.
         :type web: bool.
-        :returns: album.
+        :returns: album or None.
         """
         if not self.is_connected():
             raise ConnectionException("Connection wasn't initialized")
@@ -47,14 +47,14 @@ class AmazonClient(Client):
         search_string = album
         if artist:
             search_string += " " + artist
-        results = self.amazon.search_n(Client.MAX_RESULTS, Keywords=search_string,
-                                       SearchIndex=AmazonClient.SEARCH_INDEX)
+        results = self.amazon.search_items_limited(limit=Client.MAX_RESULTS, Keywords=search_string,
+                                                   SearchIndex=AmazonClient.SEARCH_INDEX)
         if self.verbose:
-            print "Found " + str(len(results)) + " results. Starting to check."
+            print "Found " + str(len(results)) + " results."
         for result in results:
             try:
                 # If any of these attributes doesn't exist, an exception will be raised.
-                tracks_list = result.item.Tracks.Disc.getchildren()
+                tracks_list = self._get_tracks_list(result)
                 result_artist = result.item.ItemAttributes.Artist
                 result_album = result.title
                 # Check if the result is an album.
@@ -65,12 +65,7 @@ class AmazonClient(Client):
                     webbrowser.open(result.item.DetailPageURL.text, new=2)
                 # Confirm with the user.
                 if prompt:
-                    user_answer = raw_input("Found album '" + result_album + "' by '" +
-                                            result_artist + "'. Is this correct (y/n)?")
-                    while not user_answer in ['y', 'n']:
-                        print "Please enter either 'y' or 'n'."
-                        user_answer = raw_input("Found album '" + result_album + "' by '" +
-                                                result_artist + "'. Is this correct (y/n)?")
+                    user_answer = self._prompt_user(result_album, result_artist)
                 else:
                     user_answer = 'y'
                 if user_answer == 'y':
@@ -83,30 +78,23 @@ class AmazonClient(Client):
                     result_artwork = None
                     if self.artwork_folder:
                         result_artwork = self._save_image(image_data, result_album)
+                        if self.verbose:
+                            print "Artwork found!"
                     if self.verbose:
                         print "Finished extracting information from the service."
                     return Album(result_album, result_artist, artwork_path=result_artwork,
                                  year=result_year, tracks_list=tracks_list)
             except AttributeError:
                 # This result wasn't an Audio CD. Move on to the next result.
-                pass
+                print "Bad result, moving on to the next one..."
 
         return None
 
-    def _save_image(self, image_data, album):
+    def __repr__(self):
         """
-        Saves the album's artwork.
-        :param image_data: The image to write.
-        :type image_data: binary.
-        :param album: The album's name.
-        :type album: str.
-        :return: The artwork's path.
+        Prints the name of the service.
         """
-        image_path = os.path.join(self.artwork_folder, album + Client.ARTWORK_EXTENSION)
-        image_file = open(image_path, 'wb')
-        image_file.write(image_data)
-        image_file.close()
-        return image_path
+        return "Amazon service"
 
     def _get_release_year(self, release_date):
         """
@@ -115,3 +103,15 @@ class AmazonClient(Client):
         :return: str
         """
         return release_date[:4]
+
+    def _get_tracks_list(self, result):
+        """
+        Retrieves the tracks list from the results object.
+        :param result: An ordered list of the track names.
+        :type result: list.
+        :return: An ordered list of Track objects.
+        """
+        tracks_list = []
+        for track_number, track_name in enumerate(result.item.Tracks.Disc.getchildren()):
+            tracks_list.append(Track(track_number+1, track_name.text))
+        return tracks_list

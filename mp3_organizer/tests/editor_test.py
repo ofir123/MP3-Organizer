@@ -27,7 +27,7 @@ def setup(request):
 
     # Add finalizer to delete the test directory and its contents.
     def fin():
-        shutil.rmtree(TEST_PATH)
+        shutil.rmtree(TEST_BASE_PATH)
     request.addfinalizer(fin)
 
 

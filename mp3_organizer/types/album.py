@@ -32,6 +32,17 @@ class Album(object):
         self.artwork_path = artwork_path
         self.tracks_list = tracks_list
 
+    def __eq__(self, other):
+        """
+        Compare albums to one another using the information.
+        :param other: The other track to compare to.
+        :type other: album.
+        :return: True if the objects are equal, and False otherwise.
+        """
+        return other.name == self.name and other.artist == self.artist and \
+            other.genre == self.genre and other.year == self.year and \
+            other.artwork_path == self.artwork_path and other.tracks_list == self.tracks_list
+
     def __repr__(self):
         """
         Prints the album data in the format <Artist> - <Album>.

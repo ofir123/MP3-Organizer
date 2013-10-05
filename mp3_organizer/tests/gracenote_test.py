@@ -1,24 +1,19 @@
 __author__ = 'Halti'
 
-import time
-
 import pytest
-
 from test_consts import *
-from mp3_organizer.clients.amazon.amazon_client import *
+from mp3_organizer.clients.gracenote.gracenote_client import *
 
 
 @pytest.fixture
 def test_client():
-    # Wait so the service won't be overflowed with requests.
-    time.sleep(1)
-    return AmazonClient()
+    return GracenoteClient()
 
 
 @pytest.mark.usefixtures("test_client")
-class TestAmazon:
+class TestClient:
     """
-    Tests for the Amazon client.
+    Tests for the Gracenote client.
     """
     def test_no_connection(self, test_client):
         with pytest.raises(ConnectionException):

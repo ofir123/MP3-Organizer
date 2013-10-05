@@ -18,8 +18,17 @@ class Track(object):
         :param title: The track's title.
         :type title: str.
         """
-        self.number = number if len(str(number)) > 1 else '0' + str(number)
+        self.number = str(number) if len(str(number)) > 1 else '0' + str(number)
         self.title = ' '.join(x.capitalize() for x in title.strip().split(' '))
+
+    def __eq__(self, other):
+        """
+        Compare tracks to one another using the information.
+        :param other: The other track to compare to.
+        :type other: track.
+        :return: True if the objects are equal, and False otherwise.
+        """
+        return other.number == self.number and other.title == self.title
 
     def __repr__(self):
         """
