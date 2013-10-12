@@ -4,10 +4,14 @@ import os.path
 from argparse import ArgumentParser
 from clients.amazon.amazon_client import AmazonClient
 from clients.gracenote.gracenote_client import GracenoteClient
+from mp3_organizer.lyrics.lyricscom_grabber import LyricscomGrabber
+from mp3_organizer.lyrics.lyricswiki_grabber import LyricswikiGrabber
 from file_utils import *
 
 # The ordered clients list.
 CLIENTS_LIST = [GracenoteClient, AmazonClient]
+# The ordered grabbers list.
+GRABBERS_LIST = [LyricscomGrabber, LyricswikiGrabber]
 
 
 class OrganizerException(Exception):
@@ -27,6 +31,9 @@ def organize(args):
     if args.client and not args.client.lower() in\
             [c.get_name().lower() for c in CLIENTS_LIST]:
         raise OrganizerException("Invalid client")
+    if args.grabber and not args.grabber.lower() in\
+            [g().name.lower() for g in GRABBERS_LIST]:
+        raise OrganizerException("Invalid lyrics website")
     if not args.fake:
         if not args.path or not os.path.exists(args.path):
             raise PathException("Invalid path")
@@ -43,10 +50,29 @@ def organize(args):
             print "No album was found. Exiting..."
         return
 
+    edit_files(args)
+
     # TODO - FOR TESTING PURPOSES.. REMOVE!!
     if args.verbose:
         print album.tracks_list
     return album.tracks_list
+
+
+def edit_files(args):
+    """
+    Edits all the files according to the album data.
+    :param args: The running parameters.
+    :type args: args.
+    """
+    grabbers = GRABBERS_LIST
+    # If user supplied a specific lyrics website, put it first on the list.
+    if args.grabber:
+        for index, grabber_class in enumerate(grabbers):
+            if grabber_class().name.lower() == args.grabber.lower():
+                grabber_index = index
+                grabbers.insert(0, grabbers.pop(grabber_index))
+                break
+    # TODO - Create the editor and do everything.
 
 
 def get_album_data(args):
@@ -63,7 +89,8 @@ def get_album_data(args):
         for index, client_class in enumerate(clients):
             if client_class.get_name().lower() == args.client.lower():
                 client_index = index
-        clients.insert(0, clients.pop(client_index))
+                clients.insert(0, clients.pop(client_index))
+                break
     # Try every client in the list, until succeeded.
     for client_class in clients:
         client = client_class(artwork_folder=args.image_path, verbose=args.verbose)
@@ -87,12 +114,14 @@ def get_arguments():
     """
     Gets arguments from the user.
     path - The path of the album to organize.
-    menu - Prints the available clients menu (conflicts with path).
+    clients menu - Prints the available clients menu (conflicts with path).
+    lyrics menu - Prints the available lyrics website menu (conflicts with path).
     album - The album's name (makes the search for lyrics and info easier).
     artist - The album's artist (makes the search for lyrics and info easier).
     genre - The album's genre.
     image - The path to save the album's artwork.
     client - The client to use.
+    lyrics - The lyrics website to use.
     quiet - If true, no log messages will be displayed on the screen.
     automatic - If true, user will not be prompted to approve album correctness.
     web - If true, a new tab in the browser will pop up with the album's information.
@@ -101,8 +130,10 @@ def get_arguments():
     parser = ArgumentParser(description="Organize an MP3 files directory")
     required_group = parser.add_mutually_exclusive_group(required=True)
     required_group.add_argument("-p", "--path", dest="path", help="The album's path")
-    required_group.add_argument("-m", "--clients-menu", action="store_true", dest="menu",
+    required_group.add_argument("-cm", "--clients-menu", action="store_true", dest="clients_menu",
                                 default=False, help="The available clients menu")
+    required_group.add_argument("-lm", "--lyrics-menu", action="store_true", dest="lyrics_menu",
+                                default=False, help="The available lyrics menu")
     parser.add_argument("-b", "--album", dest="album",
                         help="The album's name")
     parser.add_argument("-a", "--artist", dest="artist",
@@ -113,6 +144,8 @@ def get_arguments():
                         help="The path to save album artwork")
     parser.add_argument("-c", "--client", dest="client",
                         help="The client to use. Run with --clients-menu to see all possibilities.")
+    parser.add_argument("-l", "--lyrics", dest="grabber",
+                        help="The lyrics website to use. Run with --lyrics-menu to see all possibilities.")
     parser.add_argument("-q", "--quiet", action="store_false", dest="verbose", default=True,
                         help="Don't print any output")
     parser.add_argument("-t", "--automatic", action="store_false", dest="prompt", default=True,
@@ -132,17 +165,24 @@ def main():
     """
     # Get arguments from the user.
     args = get_arguments()
-    # Print clients menu, if asked by the user.
-    if args.menu:
+    # Print the clients menu, if asked by the user.
+    if args.clients_menu:
         print "Available clients are (sorted by order of quality):"
         for client_class in CLIENTS_LIST:
             print client_class.get_name()
         print "Please run the program again with your choice, " \
               "or without one to use default order."
         return
+    # Print the lyrics menu, if asked by the user.
+    if args.lyrics_menu:
+        print "Available lyrics websites are (sorted by order of quality):"
+        for grabber_class in GRABBERS_LIST:
+            print str(grabber_class())
+        print "Please run the program again with your choice, " \
+              "or without one to use default order."
+        return
 
     return organize(args)
-
 
 if __name__ == "__main__":
     main()

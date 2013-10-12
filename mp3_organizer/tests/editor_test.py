@@ -5,6 +5,7 @@ import os
 import glob
 import shutil
 from mutagen.id3 import ID3
+from mp3_organizer.organizer import GRABBERS_LIST
 from mp3_organizer.editor import FilesEditor
 from mp3_organizer.datatypes.album import Album
 from mp3_organizer.datatypes.track import Track
@@ -36,7 +37,7 @@ def test_editor():
     artwork_path = os.path.join(TEST_PATH, TEST_FILE_COVER)
     return FilesEditor(TEST_PATH, Album(TEST_ALBUM, TEST_ARTIST,
                                         TEST_GENRE, TEST_YEAR,
-                                        artwork_path, TEST_TRACKS_LIST))
+                                        artwork_path, TEST_TRACKS_LIST), GRABBERS_LIST)
 
 
 @pytest.mark.usefixtures("setup", "test_editor")
@@ -73,15 +74,17 @@ class TestEditor:
         assert os.path.join(TEST_PATH, "02 - Bar.mp3") in test_files
 
     def test_id3_tag(self, test_editor):
-        assert test_editor.edit_track(
-            Track(1, os.path.splitext(TEST_FILE_AUDIO)[0]), rename=False)
-        test_file = ID3(os.path.join(TEST_PATH, TEST_FILE_AUDIO))
+        # Create the test file.
+        os.rename(os.path.join(TEST_PATH, TEST_FILE_AUDIO),
+                  os.path.join(TEST_PATH, "01.mp3"))
+        assert test_editor.edit_track(TEST_TRACK)
+        test_file = ID3(os.path.join(TEST_PATH, str(TEST_TRACK) + ".mp3"))
         track_number = test_file.getall("TRCK")
         assert len(track_number) == 1
         assert track_number[0].text[0] == "01"
         title = test_file.getall("TIT2")
         assert len(title) == 1
-        assert title[0].text[0] == os.path.splitext(TEST_FILE_AUDIO)[0]
+        assert title[0].text[0] == TEST_TRACK.title
         artist = test_file.getall("TPE1")
         assert len(artist) == 1
         assert artist[0].text[0] == TEST_ARTIST
@@ -99,3 +102,7 @@ class TestEditor:
         assert year[0].text[0].text == str(TEST_YEAR)
         artwork = test_file.getall("APIC")
         assert len(artwork) == 1
+        lyrics = test_file.getall("USLT")
+        assert len(lyrics) == 1
+        assert lyrics[0].text.lower().startswith(TEST_LYRICS_START)
+        assert lyrics[0].text.lower().endswith(TEST_LYRICS_END)

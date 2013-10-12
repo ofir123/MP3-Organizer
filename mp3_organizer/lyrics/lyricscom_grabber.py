@@ -17,13 +17,15 @@ class LyricscomGrabber(Grabber):
     def name(self):
         return "Lyrics.com"
 
-    def find_lyrics(self, track, artist, prompt=True, web=True):
+    def find_lyrics(self, track, artist, album=None, prompt=True, web=True):
         """
         Searches 'lyrics.com' for the lyrics.
         :param track: The track's title.
         :type track: str.
         :param artist: The artist's name.
         :type artist: str.
+        :param album: The album's name.
+        :type album: str.
         :param prompt: Whether or not to prompt the user for approval.
         :type prompt: bool.
         :param web: Whether or not to open a browser with the album's information.

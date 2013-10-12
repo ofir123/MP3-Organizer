@@ -11,6 +11,7 @@ from mutagen.id3 import TALB
 from mutagen.id3 import TCON
 from mutagen.id3 import TDRC
 from mutagen.id3 import APIC
+from mutagen.id3 import USLT
 from mutagen.id3 import ID3NoHeaderError
 
 
@@ -21,18 +22,28 @@ class FilesEditor(object):
 
     FILES_EXTENSION = ".mp3"
 
-    def __init__(self, path, album, verbose=True):
+    def __init__(self, path, album, grabbers_list=None, prompt=True,
+                 web=True, verbose=True):
         """
         Initializes the editor with the files' path.
         :param path: The MP3 files' path.
         :type path: str.
         :param album: The album's data.
         :type album: album.
+        :param grabbers_list: The list of lyrics grabbers to use.
+        :type: grabbers_list: list.
+        :param prompt: Whether or not to prompt the user for approval.
+        :type prompt: bool.
+        :param web: Whether or not to open a browser with the lyrics' information.
+        :type web: bool.
         :param verbose: Whether or not to print output.
         :type verbose: bool.
         """
         self.path = path
         self.album = album
+        self.grabbers_list = grabbers_list
+        self.prompt = prompt
+        self.web = web
         self.verbose = verbose
 
     def _find_track(self, track):
@@ -75,7 +86,31 @@ class FilesEditor(object):
             return 'image/jpeg'
         return None
 
-    def edit_track(self, track, rename=True):
+    def _get_lyrics(self, track):
+        """
+        Uses the grabbers list to find lyrics for the given track.
+        :param track: The track to find lyrics to.
+        :type track: track.
+        :return: The track's lyrics, or None if not found.
+        """
+        for grabber_class in self.grabbers_list:
+            grabber = grabber_class(verbose=self.verbose)
+            if self.verbose:
+                print "Checking " + str(grabber) + " for lyrics."
+            try:
+                result = grabber.find_lyrics(track.title, artist=self.album.artist,
+                                             album=self.album.name, prompt=self.prompt,
+                                             web=self.web)
+                if result:
+                    return result
+            except Exception, e:
+                if self.verbose:
+                    print e
+                    print "Failed when using " + str(grabber) + "."
+            if self.verbose:
+                print "Proceeding to next grabber."
+
+    def edit_track(self, track, rename=True, lyrics=True):
         """
         Edits a single track, according to the given track info.
         Changes the file's name, and the following ID3 tag fields:
@@ -85,6 +120,8 @@ class FilesEditor(object):
         :type track: track.
         :param rename: Whether to rename the file or not.
         :type rename: bool.
+        :param lyrics: Whether to add lyrics or not.
+        :type lyrics: bool.
         :return: True if edited, False if not found.
         """
         if self.verbose:
@@ -112,6 +149,7 @@ class FilesEditor(object):
         tag.add(TALB(encoding=3, text=self.album.name))
         tag.add(TCON(encoding=3, text=self.album.genre))
         tag.add(TDRC(encoding=3, text=str(self.album.year)))
+        # Edit the artwork.
         tag.delall('APIC')
         if self.album.artwork_path:
             mime_type = self._get_mime_type(self.album.artwork_path)
@@ -122,6 +160,15 @@ class FilesEditor(object):
                 artwork_file.close()
             elif self.verbose:
                 print "Artwork file type not supported."
+        # Add lyrics.
+        tag.delall('USLT')
+        if lyrics:
+            result_lyrics = self._get_lyrics(track)
+            if result_lyrics:
+                tag.add(USLT(encoding=3, lang=u'eng', desc=u'Lyrics',
+                             text=result_lyrics))
+            elif self.verbose:
+                print "Failed to find lyrics."
         # Remove unnecessary information.
         tag.delall('COMM')
         tag.delall('TCOM')
