@@ -3,6 +3,7 @@ __author__ = 'Halti'
 import os.path
 from mp3_organizer.datatypes.track import Track
 
+TEST_TRACK = Track(1, "Don't Panic")
 TEST_ALBUM = "Parachutes"
 TEST_ARTIST = "Coldplay"
 TEST_GENRE = "Rock"
@@ -17,9 +18,11 @@ TEST_TRACKS_LIST = [Track(1, "Don't Panic"),
                     Track(8, "High Speed"),
                     Track(9, "We Never Change"),
                     Track(10, "Everything's Not Lost")]
-TEST_INVALID_ALBUM = "asdfasdfsdflsdjaflas"
+TEST_INVALID_TITLE = "asdfasdfsdflsdjaflas"
 TEST_BASE_PATH = "C:\\MP3_TESTS\\"
 TEST_PATH = os.path.join(TEST_BASE_PATH, TEST_ARTIST, TEST_ALBUM)
+TEST_LYRICS_START = u"bones sinking like stones"
+TEST_LYRICS_END = u"got somebody to lean on"
 
 # Test files constants.
 TEST_FILES_DIRECTORY = "test_files"

@@ -23,15 +23,15 @@ class Grabber(object):
     def name(self):
         return "Unknown"
 
-    def find_lyrics(self, track, album=None, artist=None, prompt=True, web=True):
+    def find_lyrics(self, track, artist=None, album=None, prompt=True, web=True):
         """
         Searches website for the track and returns its lyrics.
         :param track: The track's title.
         :type track: str.
-        :param album: The album's name.
-        :type album: str.
         :param artist: The artist's name.
         :type artist: str.
+        :param album: The album's name.
+        :type album: str.
         :param prompt: Whether or not to prompt the user for approval.
         :type prompt: bool.
         :param web: Whether or not to open a browser with the album's information.
