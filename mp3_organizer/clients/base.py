@@ -20,7 +20,7 @@ class Client(object):
 
     def __init__(self, artwork_folder=None, verbose=True):
         """
-        Initializes the Amazon client.
+        Initializes the client.
         :param artwork_folder: The folder to save pictures in.
         :type artwork_folder: str.
         :param verbose: Whether or not to print output.
@@ -78,12 +78,11 @@ class Client(object):
         :type artist: str.
         :return: The user's answer (y/n).
         """
-        user_answer = raw_input("Found album '" + album + "' by '" +
-                                artist + "'. Is this correct (y/n)?")
+        question = "Found album '" + album + "' by '" + artist + "'. Is this correct (y/n)?"
+        user_answer = raw_input(question)
         while not user_answer in ['y', 'n']:
             print "Please enter either 'y' or 'n'."
-            user_answer = raw_input("Found album '" + album + "' by '" +
-                                    artist + "'. Is this correct (y/n)?")
+            user_answer = raw_input(question)
         return user_answer
 
     def _save_image(self, image_data, album):

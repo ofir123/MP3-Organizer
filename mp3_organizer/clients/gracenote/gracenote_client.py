@@ -30,7 +30,7 @@ class GracenoteClient(Client):
 
     def find_album(self, album, artist=None, prompt=True, web=False):
         """
-        Searches Amazon for the artist and returns the album data.
+        Searches Gracenote for the artist and returns the album data.
         :param album: The album's name.
         :type album: str.
         :param artist: The artist's name.
