@@ -10,6 +10,13 @@ from file_utils import *
 CLIENTS_LIST = [GracenoteClient, AmazonClient]
 
 
+class OrganizerException(Exception):
+    """
+    Base Class for Organizer Exceptions.
+    """
+    pass
+
+
 def get_album_data(args):
     """
     Retrieves the album data using the available clients.
@@ -18,8 +25,16 @@ def get_album_data(args):
     :type args: args.
     :returns: The album data.
     """
-    for client_class in CLIENTS_LIST:
-        client = client_class(artwork_folder=args.image_path)
+    clients = CLIENTS_LIST
+    # If user supplied a specific client, put it first on the list.
+    if args.client:
+        for index, client_class in enumerate(clients):
+            if client_class().name.lower() == args.client.lower():
+                client_index = index
+        clients.insert(0, clients.pop(client_index))
+    # Try every client in the list, until succeeded.
+    for client_class in clients:
+        client = client_class(artwork_folder=args.image_path, verbose=args.verbose)
         if args.verbose:
             print "Checking " + str(client) + " for album data."
         try:
@@ -40,18 +55,22 @@ def get_arguments():
     """
     Gets arguments from the user.
     path - The path of the album to organize.
+    menu - Prints the available clients menu (conflicts with path).
     album - The album's name (makes the search for lyrics and info easier).
     artist - The album's artist (makes the search for lyrics and info easier).
     genre - The album's genre.
     image - The path to save the album's artwork.
+    client - The client to use.
     quiet - If true, no log messages will be displayed on the screen.
     automatic - If true, user will not be prompted to approve album correctness.
     web - If true, a new tab in the browser will pop up with the album's information.
     fake - If true, path doesn't exist and no actual files will be changed.
     """
-    parser = ArgumentParser()
-    parser.add_argument("-p", "--path", dest="path", required=True,
-                        help="The album's path")
+    parser = ArgumentParser(description="Organize an MP3 files directory")
+    required_group = parser.add_mutually_exclusive_group(required=True)
+    required_group.add_argument("-p", "--path", dest="path", help="The album's path")
+    required_group.add_argument("-m", "--clients-menu", action="store_true", dest="menu",
+                                default=False, help="The available clients menu")
     parser.add_argument("-b", "--album", dest="album",
                         help="The album's name")
     parser.add_argument("-a", "--artist", dest="artist",
@@ -60,6 +79,8 @@ def get_arguments():
                         help="The album's genre")
     parser.add_argument("-i", "--image", dest="image_path",
                         help="The path to save album artwork")
+    parser.add_argument("-c", "--client", dest="client",
+                        help="The client to use. Run with --clients-menu to see all possibilities.")
     parser.add_argument("-q", "--quiet", action="store_false", dest="verbose", default=True,
                         help="Don't print any output")
     parser.add_argument("-t", "--automatic", action="store_false", dest="prompt", default=True,
@@ -70,7 +91,13 @@ def get_arguments():
                         help="Fake path for testing purposes")
     args = parser.parse_args()
 
+    # No need for further validation if the user only wants to see the menu.
+    if args.menu:
+        return args
     # Validate and fix arguments.
+    if args.client and not args.client.lower() in\
+            [c().name.lower() for c in CLIENTS_LIST]:
+        raise OrganizerException("Invalid client")
     if not args.fake:
         if not os.path.exists(args.path):
             raise PathException("Invalid path")
@@ -80,7 +107,6 @@ def get_arguments():
         args.path = os.path.dirname(args.path)
     args.album = get_album(args.path, args.album)
     args.artist = get_artist(args.path, args.artist)
-
     return args
 
 
@@ -92,6 +118,14 @@ def main():
     """
     # Get arguments from the user.
     args = get_arguments()
+    # Print clients menu, if asked by the user.
+    if args.menu:
+        print "Available clients are (sorted by order of quality):"
+        for client_class in CLIENTS_LIST:
+            print str(client_class())
+        print "Please run the program again with your choice, " \
+              "or without one to use default order."
+        return
 
     # Get tracks list from Amazon.
     album = get_album_data(args)

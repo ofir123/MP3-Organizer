@@ -19,7 +19,7 @@ def amazon_test_client():
     return AmazonClient()
 
 
-@pytest.mark.parametrize("test_client", [amazon_test_client(), gracenote_test_client()])
+@pytest.mark.parametrize("test_client", [gracenote_test_client(), amazon_test_client()])
 class TestClient:
     """
     Tests for the Gracenote client.

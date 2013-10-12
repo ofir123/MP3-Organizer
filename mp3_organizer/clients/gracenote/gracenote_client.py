@@ -13,6 +13,10 @@ class GracenoteClient(Client):
     Supplies simple functions for finding an album in Gracenote.
     """
 
+    @property
+    def name(self):
+        return "Gracenote"
+
     def connect(self):
         """
         Initializes the Gracenote proxy object, which simulates a connection.

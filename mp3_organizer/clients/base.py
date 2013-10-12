@@ -15,7 +15,7 @@ class Client(object):
     Supplies simple functions for finding an album.
     """
 
-    MAX_RESULTS = 10
+    MAX_RESULTS = 1
     ARTWORK_EXTENSION = ".jpg"
 
     def __init__(self, artwork_folder=None, verbose=True):
@@ -29,6 +29,10 @@ class Client(object):
         self.artwork_folder = artwork_folder
         self.verbose = verbose
         self._connected = False
+
+    @property
+    def name(self):
+        return "Unknown"
 
     def is_connected(self):
         """

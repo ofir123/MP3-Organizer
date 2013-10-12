@@ -17,6 +17,10 @@ class AmazonClient(Client):
     SEARCH_INDEX = "Music"
     ALBUM_BINDING = "Audio CD"
 
+    @property
+    def name(self):
+        return "Amazon"
+
     def connect(self):
         """
         Initializes the Amazon proxy object, which simulates a connection.
