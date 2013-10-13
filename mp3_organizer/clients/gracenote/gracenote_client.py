@@ -2,10 +2,10 @@ __author__ = 'Ofir'
 
 import urllib2
 from gracenote_api import GracenoteAPI
-from mp3_organizer.clients.gracenote.gracenote_account import CLIENT_ID, USER_ID
+from gracenote_account import CLIENT_ID, USER_ID
 from mp3_organizer.clients.base import Client, ConnectionException
-from mp3_organizer.types.album import Album
-from mp3_organizer.types.track import Track
+from mp3_organizer.datatypes.album import Album
+from mp3_organizer.datatypes.track import Track
 
 
 class GracenoteClient(Client):
@@ -23,7 +23,7 @@ class GracenoteClient(Client):
         """
         if self.verbose:
             print "Connecting to the Gracenote service..."
-        self.gracenote = GracenoteAPI(CLIENT_ID, USER_ID)
+        self.api = GracenoteAPI(CLIENT_ID, USER_ID)
         self._connected = True
         if self.verbose:
             print "Connection successful!"
@@ -46,7 +46,7 @@ class GracenoteClient(Client):
         if web:
             print "Web not supported in Gracenote."
 
-        results = self.gracenote.search_album(album, artist)
+        results = self.api.search_album(album, artist)
         if self.verbose:
             print "Found " + str(len(results)) + " results."
         for result in results:

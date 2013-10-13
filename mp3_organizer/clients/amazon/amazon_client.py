@@ -3,10 +3,10 @@ __author__ = 'Ofir'
 import webbrowser
 import urllib2
 from amazon_api import AmazonAPI
-from mp3_organizer.clients.amazon.amazon_account import ACCESS_KEY, SECRET_KEY, ASSOCIATE_TAG
+from amazon_account import ACCESS_KEY, SECRET_KEY, ASSOCIATE_TAG
 from mp3_organizer.clients.base import Client, ConnectionException
-from mp3_organizer.types.album import Album
-from mp3_organizer.types.track import Track
+from mp3_organizer.datatypes.album import Album
+from mp3_organizer.datatypes.track import Track
 
 
 class AmazonClient(Client):
@@ -27,7 +27,7 @@ class AmazonClient(Client):
         """
         if self.verbose:
             print "Connecting to the Amazon service..."
-        self.amazon = AmazonAPI(ACCESS_KEY, SECRET_KEY, ASSOCIATE_TAG)
+        self.api = AmazonAPI(ACCESS_KEY, SECRET_KEY, ASSOCIATE_TAG)
         self._connected = True
         if self.verbose:
             print "Connection successful!"
@@ -51,8 +51,8 @@ class AmazonClient(Client):
         search_string = album
         if artist:
             search_string += " " + artist
-        results = self.amazon.search_items_limited(limit=Client.MAX_RESULTS, Keywords=search_string,
-                                                   SearchIndex=AmazonClient.SEARCH_INDEX)
+        results = self.api.search_items_limited(limit=Client.MAX_RESULTS, Keywords=search_string,
+                                                SearchIndex=AmazonClient.SEARCH_INDEX)
         if self.verbose:
             print "Found " + str(len(results)) + " results."
         for result in results:

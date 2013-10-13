@@ -1,7 +1,7 @@
 __author__ = 'Halti'
 
 import os.path
-from mp3_organizer.types.track import Track
+from mp3_organizer.datatypes.track import Track
 
 TEST_ALBUM = "Parachutes"
 TEST_ARTIST = "Coldplay"

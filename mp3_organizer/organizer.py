@@ -2,8 +2,8 @@ __author__ = 'Halti'
 
 import os.path
 from argparse import ArgumentParser
-from mp3_organizer.clients.amazon.amazon_client import AmazonClient
-from mp3_organizer.clients.gracenote.gracenote_client import GracenoteClient
+from clients.amazon.amazon_client import AmazonClient
+from clients.gracenote.gracenote_client import GracenoteClient
 from file_utils import *
 
 # The ordered clients list.
@@ -99,9 +99,9 @@ def get_arguments():
             [c().name.lower() for c in CLIENTS_LIST]:
         raise OrganizerException("Invalid client")
     if not args.fake:
-        if not os.path.exists(args.path):
+        if not args.path or not os.path.exists(args.path):
             raise PathException("Invalid path")
-        if not os.path.exists(args.image_path):
+        if args.image_path and not os.path.exists(args.image_path):
             raise PathException("Invalid images path")
     if args.path.endswith(os.path.sep):
         args.path = os.path.dirname(args.path)

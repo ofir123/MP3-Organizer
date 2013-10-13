@@ -6,8 +6,8 @@ import glob
 import shutil
 from mutagen.id3 import ID3
 from mp3_organizer.editor import FilesEditor
-from mp3_organizer.types.album import Album
-from mp3_organizer.types.track import Track
+from mp3_organizer.datatypes.album import Album
+from mp3_organizer.datatypes.track import Track
 from test_consts import *
 
 

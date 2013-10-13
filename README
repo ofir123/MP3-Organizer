@@ -11,3 +11,7 @@ Automatically organizes a downloaded MP3 album using 3 steps:
 3) Find lyrics for each song and fill them in as well.
 Parts 2 and 3 will use factories (an extractor for each information type,
 and a lyrics finder for each lyrics website).
+
+Dependencies:
+lxml
+

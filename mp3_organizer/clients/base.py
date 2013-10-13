@@ -26,6 +26,7 @@ class Client(object):
         :param verbose: Whether or not to print output.
         :type verbose: bool.
         """
+        self.api = None
         self.artwork_folder = artwork_folder
         self.verbose = verbose
         self._connected = False
