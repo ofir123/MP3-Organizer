@@ -13,8 +13,8 @@ class GracenoteClient(Client):
     Supplies simple functions for finding an album in Gracenote.
     """
 
-    @property
-    def name(self):
+    @staticmethod
+    def get_name():
         return "Gracenote"
 
     def connect(self):

@@ -17,6 +17,38 @@ class OrganizerException(Exception):
     pass
 
 
+def organize(args):
+    """
+    Start working on with the given parameters, after validating them.
+    :param args: The parsed user parameters.
+    :type args: args.
+    """
+    # Validate and fix arguments.
+    if args.client and not args.client.lower() in\
+            [c.get_name().lower() for c in CLIENTS_LIST]:
+        raise OrganizerException("Invalid client")
+    if not args.fake:
+        if not args.path or not os.path.exists(args.path):
+            raise PathException("Invalid path")
+        if args.image_path and not os.path.exists(args.image_path):
+            raise PathException("Invalid images path")
+    if args.path.endswith(os.path.sep):
+        args.path = os.path.dirname(args.path)
+    args.album = get_album(args.path, args.album)
+    args.artist = get_artist(args.path, args.artist)
+    # Get tracks list from client.
+    album = get_album_data(args)
+    if not album:
+        if args.verbose:
+            print "No album was found. Exiting..."
+        return
+
+    # TODO - FOR TESTING PURPOSES.. REMOVE!!
+    if args.verbose:
+        print album.tracks_list
+    return album.tracks_list
+
+
 def get_album_data(args):
     """
     Retrieves the album data using the available clients.
@@ -29,7 +61,7 @@ def get_album_data(args):
     # If user supplied a specific client, put it first on the list.
     if args.client:
         for index, client_class in enumerate(clients):
-            if client_class().name.lower() == args.client.lower():
+            if client_class.get_name().lower() == args.client.lower():
                 client_index = index
         clients.insert(0, clients.pop(client_index))
     # Try every client in the list, until succeeded.
@@ -89,25 +121,7 @@ def get_arguments():
                         help="Don't open a new browser tab with the album's information")
     parser.add_argument("-f", "--fake", action="store_true", dest="fake", default=False,
                         help="Fake path for testing purposes")
-    args = parser.parse_args()
-
-    # No need for further validation if the user only wants to see the menu.
-    if args.menu:
-        return args
-    # Validate and fix arguments.
-    if args.client and not args.client.lower() in\
-            [c().name.lower() for c in CLIENTS_LIST]:
-        raise OrganizerException("Invalid client")
-    if not args.fake:
-        if not args.path or not os.path.exists(args.path):
-            raise PathException("Invalid path")
-        if args.image_path and not os.path.exists(args.image_path):
-            raise PathException("Invalid images path")
-    if args.path.endswith(os.path.sep):
-        args.path = os.path.dirname(args.path)
-    args.album = get_album(args.path, args.album)
-    args.artist = get_artist(args.path, args.artist)
-    return args
+    return parser.parse_args()
 
 
 def main():
@@ -122,22 +136,13 @@ def main():
     if args.menu:
         print "Available clients are (sorted by order of quality):"
         for client_class in CLIENTS_LIST:
-            print str(client_class())
+            print client_class.get_name()
         print "Please run the program again with your choice, " \
               "or without one to use default order."
         return
 
-    # Get tracks list from Amazon.
-    album = get_album_data(args)
-    if not album:
-        if args.verbose:
-            print "No album was found. Exiting..."
-        return
+    return organize(args)
 
-    # TODO - FOR TESTING PURPOSES.. REMOVE!!
-    if args.verbose:
-        print album.tracks_list
-    return album.tracks_list
 
 if __name__ == "__main__":
     main()

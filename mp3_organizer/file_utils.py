@@ -1,10 +1,9 @@
 __author__ = 'Halti'
 
 import os.path
-from organizer import OrganizerException
 
 
-class PathException(OrganizerException):
+class PathException(Exception):
     """
     Thrown when an invalid album path was given.
     """

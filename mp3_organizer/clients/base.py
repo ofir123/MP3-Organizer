@@ -31,8 +31,8 @@ class Client(object):
         self.verbose = verbose
         self._connected = False
 
-    @property
-    def name(self):
+    @staticmethod
+    def get_name():
         return "Unknown"
 
     def is_connected(self):

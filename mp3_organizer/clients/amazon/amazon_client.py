@@ -17,8 +17,8 @@ class AmazonClient(Client):
     SEARCH_INDEX = "Music"
     ALBUM_BINDING = "Audio CD"
 
-    @property
-    def name(self):
+    @staticmethod
+    def get_name():
         return "Amazon"
 
     def connect(self):
