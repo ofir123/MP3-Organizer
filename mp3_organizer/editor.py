@@ -2,6 +2,7 @@ __author__ = 'Halti'
 
 import glob
 import os.path
+import re
 from mutagen.id3 import ID3
 from mutagen.id3 import TRCK
 from mutagen.id3 import TIT2
@@ -13,6 +14,7 @@ from mutagen.id3 import TDRC
 from mutagen.id3 import APIC
 from mutagen.id3 import USLT
 from mutagen.id3 import ID3NoHeaderError
+from file_utils import normalize_name, get_mime_type
 
 import logging
 from organizer import LOGGER_NAME
@@ -82,38 +84,23 @@ class FilesEditor(object):
         :return: The track's file name, or None if not found.
         """
         # Get all file names and normalize them.
-        files = [x for x in
-                 glob.glob(os.path.join(self.path, "*" + FilesEditor.FILES_EXTENSION))]
+        files = glob.glob(os.path.join(self.path, "*" + FilesEditor.FILES_EXTENSION))
         # Try and find the track's name.
         for filename in files:
-            if track.title.lower() in os.path.splitext(
-                    os.path.basename(filename.strip().lower()))[0]:
+            if len(re.findall("\\b" + normalize_name(track.title) + "\\b",
+                              normalize_name(os.path.splitext(os.path.basename(filename))[0]))) > 0:
                 if self.verbose:
                     logger.debug("Found track by its name.")
                 return filename
         # Try and find the track's number.
         for filename in files:
-            if track.number in os.path.splitext(
-                    os.path.basename(filename.strip().lower()))[0]:
+            if len(re.findall("\\b" + track.number + "\\b",
+                              normalize_name(os.path.splitext(os.path.basename(filename))[0]))) > 0:
                 if self.verbose:
                     logger.debug("Found track by its number.")
                 return filename
         if self.verbose:
             logger.warning("Track not found.")
-        return None
-
-    def _get_mime_type(self, filename):
-        """
-        Finds out the mime type for the given image file.
-        :param filename: The file to check.
-        :type filename: str.
-        :return: The mime string, or None if not supported.
-        """
-        extension = os.path.splitext(filename)[1]
-        if extension == ".png":
-            return 'image/png'
-        if extension == ".jpg" or extension == ".jpeg":
-            return 'image/jpeg'
         return None
 
     def _get_lyrics(self, track):
@@ -188,7 +175,7 @@ class FilesEditor(object):
         # Edit the artwork.
         tag.delall('APIC')
         if self.album.artwork_path:
-            mime_type = self._get_mime_type(self.album.artwork_path)
+            mime_type = get_mime_type(self.album.artwork_path)
             if mime_type:
                 artwork_file = open(self.album.artwork_path, 'rb')
                 tag.add(APIC(encoding=3, mime=mime_type, type=3,

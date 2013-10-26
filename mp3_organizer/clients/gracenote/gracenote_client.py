@@ -57,8 +57,8 @@ class GracenoteClient(Client):
             try:
                 # If any of these attributes doesn't exist, an exception will be raised.
                 tracks_list = self._get_tracks_list(result)
-                result_artist = result[GracenoteAPI.ARTIST_NAME]
-                result_album = result[GracenoteAPI.ALBUM_TITLE]
+                result_artist = result[GracenoteAPI.ARTIST_NAME].capitalize()
+                result_album = result[GracenoteAPI.ALBUM_TITLE].capitalize()
                 # Confirm with the user.
                 if prompt:
                     user_answer = self._prompt_user(result_album, result_artist)
