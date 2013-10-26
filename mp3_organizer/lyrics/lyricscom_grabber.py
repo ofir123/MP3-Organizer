@@ -13,8 +13,8 @@ class LyricscomGrabber(Grabber):
     LYRICSCOM_URL_PATTERN = 'http://www.lyrics.com/%s-lyrics-%s.html'
     LYRICSCOM_NOT_FOUND = ('Sorry, we do not have the lyric', 'Submit Lyrics')
 
-    @property
-    def name(self):
+    @staticmethod
+    def get_name():
         return "Lyrics.com"
 
     def find_lyrics(self, track, artist, album=None, prompt=True, web=True):

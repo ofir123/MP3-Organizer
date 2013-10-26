@@ -12,8 +12,8 @@ class LyricswikiGrabber(Grabber):
 
     LYRICSWIKI_URL_PATTERN = 'http://lyrics.wikia.com/%s:%s'
 
-    @property
-    def name(self):
+    @staticmethod
+    def get_name():
         return "Lyrics Wiki"
 
     def find_lyrics(self, track, artist, album=None, prompt=True, web=True):

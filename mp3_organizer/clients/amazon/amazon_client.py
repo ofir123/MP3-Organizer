@@ -59,7 +59,7 @@ class AmazonClient(Client):
             try:
                 # If any of these attributes doesn't exist, an exception will be raised.
                 tracks_list = self._get_tracks_list(result)
-                result_artist = result.item.ItemAttributes.Artist
+                result_artist = result.item.ItemAttributes.Artist.text
                 result_album = result.title
                 # Check if the result is an album.
                 if result.item.ItemAttributes.Binding != AmazonClient.ALBUM_BINDING:

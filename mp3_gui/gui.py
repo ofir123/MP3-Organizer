@@ -6,7 +6,7 @@ import sys
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 from arguments import Arguments
-from mp3_organizer.organizer import organize, CLIENTS_LIST
+from mp3_organizer.organizer import organize, CLIENTS_LIST, GRABBERS_LIST
 from mp3_organizer.file_utils import get_album, get_artist, PathException
 
 
@@ -30,18 +30,21 @@ class MainWindow(QtGui.QWidget):
         """
         super(MainWindow, self).__init__()
         self.dir_path_label = QtGui.QLabel("MP3 Directory:", self)
+        self.image_path_label = QtGui.QLabel("Artwork save path:", self)
         self.album_label = QtGui.QLabel("Album title:", self)
         self.artist_label = QtGui.QLabel("Artist name:", self)
         self.genre_label = QtGui.QLabel("Genre:", self)
-        self.image_path_label = QtGui.QLabel("Artwork save path:", self)
         self.client_label = QtGui.QLabel("Preferred client:", self)
+        self.lyrics_label = QtGui.QLabel("Preferred lyrics:", self)
         self.dir_path = QtGui.QLineEdit(self)
+        self.image_path = QtGui.QLineEdit(self)
         self.album = QtGui.QLineEdit(self)
         self.artist = QtGui.QLineEdit(self)
         self.genre = QtGui.QLineEdit(self)
-        self.image_path = QtGui.QLineEdit(self)
         self.client = QtGui.QComboBox(self)
+        self.lyrics = QtGui.QComboBox(self)
         self.dir_button = QtGui.QPushButton("Browse...", self)
+        self.image_button = QtGui.QPushButton("Browse...", self)
         self.start_button = QtGui.QPushButton("Start!", self)
         self.log_text = QtGui.QTextEdit(self)
         self.init_ui()
@@ -70,7 +73,9 @@ class MainWindow(QtGui.QWidget):
         self.genre_label.adjustSize()
         self.image_path_label.adjustSize()
         self.client_label.adjustSize()
+        self.lyrics_label.adjustSize()
         self.dir_button.resize(self.dir_button.sizeHint())
+        self.image_button.resize(self.image_button.sizeHint())
         self.start_button.resize(self.start_button.sizeHint())
         # Build the grid.
         grid = QtGui.QGridLayout()
@@ -80,29 +85,35 @@ class MainWindow(QtGui.QWidget):
         grid.addWidget(self.dir_path, 1, 1, 1, 4)
         grid.addWidget(self.dir_button, 1, 5)
         # Second row.
-        grid.addWidget(self.artist_label, 2, 0)
-        grid.addWidget(self.artist, 2, 1)
-        grid.addWidget(self.album_label, 2, 2)
-        grid.addWidget(self.album, 2, 3)
-        grid.addWidget(self.genre_label, 2, 4)
-        grid.addWidget(self.genre, 2, 5)
+        grid.addWidget(self.image_path_label, 2, 0)
+        grid.addWidget(self.image_path, 2, 1, 1, 4)
+        grid.addWidget(self.image_button, 2, 5)
         # Third row.
-        grid.addWidget(self.client_label, 3, 0)
-        grid.addWidget(self.client, 3, 1)
-        grid.addWidget(self.image_path_label, 3, 2)
-        grid.addWidget(self.image_path, 3, 3)
-        grid.addWidget(self.start_button, 3, 4, 1, 2)
+        grid.addWidget(self.artist_label, 3, 0)
+        grid.addWidget(self.artist, 3, 1)
+        grid.addWidget(self.album_label, 3, 2)
+        grid.addWidget(self.album, 3, 3)
+        grid.addWidget(self.genre_label, 3, 4)
+        grid.addWidget(self.genre, 3, 5)
+        # Fourth row.
+        grid.addWidget(self.client_label, 4, 0)
+        grid.addWidget(self.client, 4, 1)
+        grid.addWidget(self.lyrics_label, 4, 2)
+        grid.addWidget(self.lyrics, 4, 3)
+        grid.addWidget(self.start_button, 4, 4, 1, 2)
         # Rest of the window.
-        grid.addWidget(self.log_text, 4, 0, 5, 6)
+        grid.addWidget(self.log_text, 5, 0, 5, 6)
         self.setLayout(grid)
         # Component-specific settings.
         for client in CLIENTS_LIST:
             self.client.addItem(client.get_name())
-        self.dir_button.clicked.connect(self._show_dialog)
+        for grabber in GRABBERS_LIST:
+            self.lyrics.addItem(grabber.get_name())
+        self.dir_button.clicked.connect(self._show_dir_dialog)
+        self.image_button.clicked.connect(self._show_image_dialog)
         self.start_button.clicked.connect(self._run_organizer)
         self.log_text.setReadOnly(True)
         self.start_button.setIcon(QtGui.QIcon("images/start.png"))
-        self.image_path.setText("C:\\")
 
         self.show()
 
@@ -123,7 +134,7 @@ class MainWindow(QtGui.QWidget):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    def _show_dialog(self):
+    def _show_dir_dialog(self):
         """
         Shows the directory selection dialog.
         The selected directory is then shown in the path line.
@@ -133,6 +144,7 @@ class MainWindow(QtGui.QWidget):
             album_title = get_album(dir_name)
             artist_name = get_artist(dir_name)
             self.dir_path.setText(dir_name)
+            self.image_path.setText(dir_name)
             self.album.setText(album_title)
             self.artist.setText(artist_name)
         except PathException:
@@ -141,14 +153,25 @@ class MainWindow(QtGui.QWidget):
                                        QtGui.QMessageBox.Ok)
         return dir_name
 
+    def _show_image_dialog(self):
+        """
+        Shows the artwork path selection dialog.
+        The selected directory is then shown in the path line.
+        """
+        dir_name = str(QFileDialog.getExistingDirectory(self, "Select Directory", "/home"))
+        self.image_path.setText(dir_name)
+        return dir_name
+
     def _run_organizer(self):
         """
         Calls the MP3 organizer with the proper parameters.
         """
+        self.log_text.clear()
         print "Running organizer on path:'" + self.dir_path.text() + "'."
         args = Arguments(path=str(self.dir_path.text()), album=str(self.album.text()),
                          artist=str(self.artist.text()), genre=str(self.genre.text()),
-                         image=str(self.image_path.text()), client=str(self.client.currentText()))
+                         image=str(self.image_path.text()), client=str(self.client.currentText()),
+                         grabber=str(self.lyrics.currentText()))
         organize(args)
 
 

@@ -58,13 +58,13 @@ class FilesEditor(object):
                  glob.glob(os.path.join(self.path, "*" + FilesEditor.FILES_EXTENSION))]
         # Try and find the track's name.
         for filename in files:
-            if track.title.lower() in os.path.splitext(os.path.basename(filename)):
+            if track.title.lower() in os.path.splitext(os.path.basename(filename))[0]:
                 if self.verbose:
                     print "Found track by its name."
                 return filename
         # Try and find the track's number.
         for filename in files:
-            if track.number in os.path.splitext(os.path.basename(filename)):
+            if track.number in os.path.splitext(os.path.basename(filename))[0]:
                 if self.verbose:
                     print "Found track by its number."
                 return filename
@@ -102,6 +102,8 @@ class FilesEditor(object):
                                              album=self.album.name, prompt=self.prompt,
                                              web=self.web)
                 if result:
+                    if self.verbose:
+                        print "Lyrics found!"
                     return result
             except Exception, e:
                 if self.verbose:
@@ -134,6 +136,8 @@ class FilesEditor(object):
             new_name = os.path.join(os.path.dirname(filename),
                                     str(track)) + FilesEditor.FILES_EXTENSION
             os.rename(filename, new_name)
+            if self.verbose:
+                print "File '" + filename + "' was renamed to '" + new_name + "'."
         else:
             new_name = filename
 
@@ -186,14 +190,17 @@ class FilesEditor(object):
         :return: The list of failed tracks.
         """
         failed_list = []
+        success_list = []
         if not tracks_list:
             tracks_list = self.album.tracks_list
         for track in tracks_list:
             is_success = self.edit_track(track)
             if not is_success:
                 failed_list.append(track)
-            elif self.verbose:
-                print "Track '" + str(track) + "' edited successfully."
-        if len(failed_list) > 0 and self.verbose:
-            print "Failed tracks are: " + str(failed_list)
+            else:
+                success_list.append(track)
+                if self.verbose:
+                    print "Track '" + str(track) + "' edited successfully."
+        if len(success_list) > 0 and self.verbose:
+            print "Successful tracks are: " + str(success_list)
         return failed_list

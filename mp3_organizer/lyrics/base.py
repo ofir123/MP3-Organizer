@@ -19,8 +19,8 @@ class Grabber(object):
         """
         self.verbose = verbose
 
-    @property
-    def name(self):
+    @staticmethod
+    def get_name():
         return "Unknown"
 
     def find_lyrics(self, track, artist=None, album=None, prompt=True, web=True):

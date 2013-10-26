@@ -1,6 +1,7 @@
 __author__ = 'Halti'
 
 import os.path
+import glob
 from argparse import ArgumentParser
 from clients.amazon.amazon_client import AmazonClient
 from clients.gracenote.gracenote_client import GracenoteClient
@@ -10,7 +11,7 @@ from file_utils import *
 from editor import FilesEditor
 
 # The ordered clients list.
-CLIENTS_LIST = [GracenoteClient, AmazonClient]
+CLIENTS_LIST = [AmazonClient, GracenoteClient]
 # The ordered grabbers list.
 GRABBERS_LIST = [LyricscomGrabber, LyricswikiGrabber]
 
@@ -34,7 +35,7 @@ def organize(args):
             [c.get_name().lower() for c in CLIENTS_LIST]:
         raise OrganizerException("Invalid client")
     if args.grabber and not args.grabber.lower() in\
-            [g().name.lower() for g in GRABBERS_LIST]:
+            [g.get_name().lower() for g in GRABBERS_LIST]:
         raise OrganizerException("Invalid lyrics website")
     if not args.path or not os.path.exists(args.path):
         raise PathException("Invalid path")
@@ -66,14 +67,26 @@ def edit_files(args, album):
     grabbers = GRABBERS_LIST
     if args.grabber:
         for index, grabber_class in enumerate(grabbers):
-            if grabber_class().name.lower() == args.grabber.lower():
+            if grabber_class.get_name().lower() == args.grabber.lower():
                 grabber_index = index
                 grabbers.insert(0, grabbers.pop(grabber_index))
                 break
 
     editor = FilesEditor(args.path, album, grabbers, args.prompt,
                          args.web, args.verbose)
-    return editor.edit_tracks()
+    failed_list = editor.edit_tracks()
+    # Check for missed files.
+    if args.verbose:
+        print "Checking for missed files..."
+    mp3_files = glob.glob(os.path.join(args.path, "*.mp3"))
+    tracks = map(str, album.tracks_list)
+    for mp3_file in mp3_files:
+        mp3_name = os.path.splitext(os.path.basename(mp3_file))[0]
+        if mp3_name not in tracks:
+            failed_list.append(mp3_name)
+            if args.verbose:
+                print "File '" + mp3_file + "' was not edited."
+    return failed_list
 
 
 def get_album_data(args):
@@ -178,12 +191,15 @@ def main():
     if args.lyrics_menu:
         print "Available lyrics websites are (sorted by order of quality):"
         for grabber_class in GRABBERS_LIST:
-            print str(grabber_class())
+            print grabber_class.get_name()
         print "Please run the program again with your choice, " \
               "or without one to use default order."
         return
 
-    return organize(args)
+    failed_list = organize(args)
+    if len(failed_list) > 0 and args.verbose:
+        print "Failed tracks are: " + str(failed_list)
+    return failed_list
 
 if __name__ == "__main__":
     main()
