@@ -4,6 +4,10 @@ import re
 from lyrics_utils import encode, fetch_url, extract_text
 from mp3_organizer.lyrics.base import Grabber
 
+import logging
+from mp3_organizer.organizer import LOGGER_NAME
+logger = logging.getLogger(LOGGER_NAME)
+
 
 class LyricscomGrabber(Grabber):
     """
@@ -44,14 +48,14 @@ class LyricscomGrabber(Grabber):
         for not_found_str in LyricscomGrabber.LYRICSCOM_NOT_FOUND:
             if not_found_str in lyrics:
                 if self.verbose:
-                    print "Couldn't find lyrics."
+                    logger.warning("Couldn't find lyrics.")
                 return
 
         parts = lyrics.split('\n---\nLyrics powered by', 1)
         if parts:
             return parts[0]
         if self.verbose:
-            print "Something went wrong when splitting the parts."
+            logger.error("Something went wrong when splitting the parts.")
 
     def _encode(self, string):
         """

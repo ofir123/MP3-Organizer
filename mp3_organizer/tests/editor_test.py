@@ -77,7 +77,10 @@ class TestEditor:
         # Create the test file.
         os.rename(os.path.join(TEST_PATH, TEST_FILE_AUDIO),
                   os.path.join(TEST_PATH, "01.mp3"))
-        assert test_editor.edit_track(TEST_TRACK)
+        results = test_editor.edit_track(TEST_TRACK)
+        assert results.success
+        assert results.lyrics
+        assert results.rename
         test_file = ID3(os.path.join(TEST_PATH, str(TEST_TRACK) + ".mp3"))
         track_number = test_file.getall("TRCK")
         assert len(track_number) == 1

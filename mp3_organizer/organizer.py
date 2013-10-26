@@ -1,5 +1,20 @@
 __author__ = 'Halti'
 
+import logging
+# Create logger.
+LOGGER_NAME = "organizer_logger"
+logger = logging.getLogger(LOGGER_NAME)
+logger.setLevel(logging.DEBUG)
+# Create console handler and set level to debug.
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+# Create formatter.
+formatter = logging.Formatter('%(levelname)s - %(message)s')
+# Add formatter to console handler.
+console_handler.setFormatter(formatter)
+# add ch to logger
+logger.addHandler(console_handler)
+
 import os.path
 import glob
 from argparse import ArgumentParser
@@ -49,9 +64,15 @@ def organize(args):
     album = get_album_data(args)
     if not album:
         if args.verbose:
-            print "No album was found. Exiting..."
+            logger.info("No album was found. Exiting...")
         return
-    return edit_files(args, album)
+    # Edit the files.
+    failed_list = edit_files(args, album)
+    if len(failed_list) > 0 and args.verbose:
+        logger.info("Failed tracks are: " + str(failed_list))
+    if args.verbose:
+        logger.info("Finished!")
+    return failed_list
 
 
 def edit_files(args, album):
@@ -77,7 +98,7 @@ def edit_files(args, album):
     failed_list = editor.edit_tracks()
     # Check for missed files.
     if args.verbose:
-        print "Checking for missed files..."
+        logger.debug("Checking for missed files...")
     mp3_files = glob.glob(os.path.join(args.path, "*.mp3"))
     tracks = map(str, album.tracks_list)
     for mp3_file in mp3_files:
@@ -85,7 +106,7 @@ def edit_files(args, album):
         if mp3_name not in tracks:
             failed_list.append(mp3_name)
             if args.verbose:
-                print "File '" + mp3_file + "' was not edited."
+                logger.info("File '" + mp3_file + "' was not edited.")
     return failed_list
 
 
@@ -109,7 +130,7 @@ def get_album_data(args):
     for client_class in clients:
         client = client_class(artwork_folder=args.image_path, verbose=args.verbose)
         if args.verbose:
-            print "Checking " + str(client) + " for album data."
+            logger.debug("Checking " + str(client) + " for album data.")
         try:
             client.connect()
             result = client.find_album(args.album, args.artist,
@@ -121,10 +142,10 @@ def get_album_data(args):
                 return result
         except Exception, e:
             if args.verbose:
-                print e
-                print "Failed when using " + str(client) + "."
+                logger.debug(e)
+                logger.info("Failed when using " + str(client) + ".")
         if args.verbose:
-            print "Proceeding to next client."
+            logger.debug("Proceeding to next client.")
 
 
 def get_arguments():
@@ -181,25 +202,22 @@ def main():
     args = get_arguments()
     # Print the clients menu, if asked by the user.
     if args.clients_menu:
-        print "Available clients are (sorted by order of quality):"
+        logger.info("Available clients are (sorted by order of quality):")
         for client_class in CLIENTS_LIST:
-            print client_class.get_name()
-        print "Please run the program again with your choice, " \
-              "or without one to use default order."
+            logger.info(client_class.get_name())
+        logger.info("Please run the program again with your choice, "
+                    "or without one to use default order.")
         return
     # Print the lyrics menu, if asked by the user.
     if args.lyrics_menu:
-        print "Available lyrics websites are (sorted by order of quality):"
+        logger.info("Available lyrics websites are (sorted by order of quality):")
         for grabber_class in GRABBERS_LIST:
-            print grabber_class.get_name()
-        print "Please run the program again with your choice, " \
-              "or without one to use default order."
+            logger.info(grabber_class.get_name())
+        logger.info("Please run the program again with your choice, "
+                    "or without one to use default order.")
         return
 
-    failed_list = organize(args)
-    if len(failed_list) > 0 and args.verbose:
-        print "Failed tracks are: " + str(failed_list)
-    return failed_list
+    return organize(args)
 
 if __name__ == "__main__":
     main()

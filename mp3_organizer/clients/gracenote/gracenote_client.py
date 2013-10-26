@@ -7,6 +7,10 @@ from mp3_organizer.clients.base import Client, ConnectionException
 from mp3_organizer.datatypes.album import Album
 from mp3_organizer.datatypes.track import Track
 
+import logging
+from mp3_organizer.organizer import LOGGER_NAME
+logger = logging.getLogger(LOGGER_NAME)
+
 
 class GracenoteClient(Client):
     """
@@ -22,11 +26,11 @@ class GracenoteClient(Client):
         Initializes the Gracenote proxy object, which simulates a connection.
         """
         if self.verbose:
-            print "Connecting to the Gracenote service..."
+            logger.info("Connecting to the Gracenote service...")
         self.api = GracenoteAPI(CLIENT_ID, USER_ID)
         self._connected = True
         if self.verbose:
-            print "Connection successful!"
+            logger.debug("Connection successful!")
 
     def find_album(self, album, artist=None, prompt=True, web=False):
         """
@@ -44,11 +48,11 @@ class GracenoteClient(Client):
         if not self.is_connected():
             raise ConnectionException("Connection wasn't initialized")
         if web:
-            print "Web not supported in Gracenote."
+            logger.debug("Web not supported in Gracenote.")
 
         results = self.api.search_album(album, artist)
         if self.verbose:
-            print "Found " + str(len(results)) + " results."
+            logger.info("Found " + str(len(results)) + " results.")
         for result in results:
             try:
                 # If any of these attributes doesn't exist, an exception will be raised.
@@ -62,8 +66,8 @@ class GracenoteClient(Client):
                     user_answer = 'y'
                 if user_answer == 'y':
                     if self.verbose:
-                        print "Getting more info on result: " + result_album + \
-                              " by " + result_artist
+                        logger.debug("Getting more info on result: " +
+                                     result_album + " by " + result_artist)
                     # Get extra data and return the result.
                     result_year = result[GracenoteAPI.ALBUM_YEAR]
                     image_data = urllib2.urlopen(result[GracenoteAPI.ALBUM_ART_URL]).read()
@@ -71,14 +75,14 @@ class GracenoteClient(Client):
                     if self.artwork_folder:
                         result_artwork = self._save_image(image_data, result_album)
                         if self.verbose:
-                            print "Artwork found!"
+                            logger.debug("Artwork found!")
                     if self.verbose:
-                        print "Finished extracting information from the service."
+                        logger.debug("Finished extracting information from the service.")
                     return Album(result_album, result_artist, artwork_path=result_artwork,
                                  year=result_year, tracks_list=tracks_list)
             except KeyError:
                 # This result didn't not contain all the necessary information.
-                print "Bad result, moving on to the next one..."
+                logger.warning("Bad result, moving on to the next one...")
 
         return None
 

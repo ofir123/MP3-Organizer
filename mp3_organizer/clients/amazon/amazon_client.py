@@ -8,6 +8,10 @@ from mp3_organizer.clients.base import Client, ConnectionException
 from mp3_organizer.datatypes.album import Album
 from mp3_organizer.datatypes.track import Track
 
+import logging
+from mp3_organizer.organizer import LOGGER_NAME
+logger = logging.getLogger(LOGGER_NAME)
+
 
 class AmazonClient(Client):
     """
@@ -26,11 +30,11 @@ class AmazonClient(Client):
         Initializes the Amazon proxy object, which simulates a connection.
         """
         if self.verbose:
-            print "Connecting to the Amazon service..."
+            logger.info("Connecting to the Amazon service...")
         self.api = AmazonAPI(ACCESS_KEY, SECRET_KEY, ASSOCIATE_TAG)
         self._connected = True
         if self.verbose:
-            print "Connection successful!"
+            print logger.debug("Connection successful!")
 
     def find_album(self, album, artist=None, prompt=True, web=True):
         """
@@ -54,7 +58,7 @@ class AmazonClient(Client):
         results = self.api.search_items_limited(limit=Client.MAX_RESULTS, Keywords=search_string,
                                                 SearchIndex=AmazonClient.SEARCH_INDEX)
         if self.verbose:
-            print "Found " + str(len(results)) + " results."
+            logger.info("Found " + str(len(results)) + " results.")
         for result in results:
             try:
                 # If any of these attributes doesn't exist, an exception will be raised.
@@ -74,8 +78,8 @@ class AmazonClient(Client):
                     user_answer = 'y'
                 if user_answer == 'y':
                     if self.verbose:
-                        print "Getting more info on result: " + result_album + \
-                              " by " + result_artist
+                        logger.debug("Getting more info on result: " +
+                                     result_album + " by " + result_artist)
                     # Get extra data and return the result.
                     result_year = self._get_release_year(result.item.ItemAttributes.ReleaseDate.text)
                     image_data = urllib2.urlopen(result.item.LargeImage.URL.text).read()
@@ -83,14 +87,14 @@ class AmazonClient(Client):
                     if self.artwork_folder:
                         result_artwork = self._save_image(image_data, result_album)
                         if self.verbose:
-                            print "Artwork found!"
+                            logger.debug("Artwork found!")
                     if self.verbose:
-                        print "Finished extracting information from the service."
+                        logger.debug("Finished extracting information from the service.")
                     return Album(result_album, result_artist, artwork_path=result_artwork,
                                  year=result_year, tracks_list=tracks_list)
             except AttributeError:
                 # This result wasn't an Audio CD. Move on to the next result.
-                print "Bad result, moving on to the next one..."
+                logger.warning("Bad result, moving on to the next one...")
 
         return None
 

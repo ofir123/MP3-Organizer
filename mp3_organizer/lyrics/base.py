@@ -1,8 +1,5 @@
 __author__ = 'Ofir'
 
-import re
-import urllib
-
 
 class Grabber(object):
     """

@@ -4,6 +4,10 @@ import re
 from lyrics_utils import encode, fetch_url, extract_text
 from mp3_organizer.lyrics.base import Grabber
 
+import logging
+from mp3_organizer.organizer import LOGGER_NAME
+logger = logging.getLogger(LOGGER_NAME)
+
 
 class LyricswikiGrabber(Grabber):
     """
@@ -41,7 +45,7 @@ class LyricswikiGrabber(Grabber):
         if lyrics and 'Unfortunately, we are not licensed' not in lyrics:
             return lyrics
         if self.verbose:
-            print "Couldn't find lyrics."
+            logger.warning("Couldn't find lyrics.")
 
     def _encode(self, string):
         """

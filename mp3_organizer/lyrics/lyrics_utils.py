@@ -3,6 +3,10 @@ __author__ = 'Halti'
 import urllib
 import re
 
+import logging
+from mp3_organizer.organizer import LOGGER_NAME
+logger = logging.getLogger(LOGGER_NAME)
+
 DIV_RE = re.compile(r'<(/?)div>?')
 COMMENT_RE = re.compile(r'<!--.*-->', re.S)
 TAG_RE = re.compile(r'<[^>]*>')
@@ -28,7 +32,7 @@ def extract_text(html, start_tag, verbose=True):
             _, html = html.split(start_tag, 1)
         except ValueError:
             if verbose:
-                print "Couldn't find start tag - " + start_tag + "."
+                logger.error("Couldn't find start tag - " + start_tag + ".")
             return
 
         # Walk through balanced DIV tags.
@@ -52,7 +56,7 @@ def extract_text(html, start_tag, verbose=True):
                 break
         else:
             if verbose:
-                print "No closing tag found!"
+                logger.error("No closing tag found!")
             return
         lyrics = ''.join(parts)
         return strip_lyrics(lyrics)
@@ -123,6 +127,6 @@ def fetch_url(url, verbose=True):
         return urllib.urlopen(url).read()
     except IOError as ex:
         if verbose:
-            print "failed to fetch: " + url
+            logger.error("failed to fetch: " + url)
             print ex
         return None
