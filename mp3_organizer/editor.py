@@ -58,13 +58,13 @@ class FilesEditor(object):
                  glob.glob(os.path.join(self.path, "*" + FilesEditor.FILES_EXTENSION))]
         # Try and find the track's name.
         for filename in files:
-            if track.title.lower() in filename:
+            if track.title.lower() in os.path.splitext(os.path.basename(filename)):
                 if self.verbose:
                     print "Found track by its name."
                 return filename
         # Try and find the track's number.
         for filename in files:
-            if track.number in filename:
+            if track.number in os.path.splitext(os.path.basename(filename)):
                 if self.verbose:
                     print "Found track by its number."
                 return filename
@@ -178,20 +178,22 @@ class FilesEditor(object):
         tag.save(new_name)
         return True
 
-    def edit_tracks(self, tracks_list):
+    def edit_tracks(self, tracks_list=None):
         """
         Edits multiple files, according to the given tracks list.
-        :param tracks_list: The tracks to edit.
+        :param tracks_list: The tracks to edit. Uses the current album's list if None.
         :type tracks_list: list.
         :return: The list of failed tracks.
         """
         failed_list = []
+        if not tracks_list:
+            tracks_list = self.album.tracks_list
         for track in tracks_list:
             is_success = self.edit_track(track)
             if not is_success:
                 failed_list.append(track)
             elif self.verbose:
-                print "Track edited successfully."
+                print "Track '" + str(track) + "' edited successfully."
         if len(failed_list) > 0 and self.verbose:
             print "Failed tracks are: " + str(failed_list)
         return failed_list

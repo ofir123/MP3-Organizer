@@ -81,7 +81,7 @@ class TestEditor:
         test_file = ID3(os.path.join(TEST_PATH, str(TEST_TRACK) + ".mp3"))
         track_number = test_file.getall("TRCK")
         assert len(track_number) == 1
-        assert track_number[0].text[0] == "01"
+        assert track_number[0].text[0] == TEST_TRACK.number
         title = test_file.getall("TIT2")
         assert len(title) == 1
         assert title[0].text[0] == TEST_TRACK.title

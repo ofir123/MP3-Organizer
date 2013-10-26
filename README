@@ -14,5 +14,5 @@ and a lyrics finder for each lyrics website).
 
 Dependencies:
 lxml
-pyQt (For the GUI to work)
+pyQt 4 (For the GUI to work)
 

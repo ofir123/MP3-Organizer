@@ -7,6 +7,7 @@ from clients.gracenote.gracenote_client import GracenoteClient
 from mp3_organizer.lyrics.lyricscom_grabber import LyricscomGrabber
 from mp3_organizer.lyrics.lyricswiki_grabber import LyricswikiGrabber
 from file_utils import *
+from editor import FilesEditor
 
 # The ordered clients list.
 CLIENTS_LIST = [GracenoteClient, AmazonClient]
@@ -26,6 +27,7 @@ def organize(args):
     Start working on with the given parameters, after validating them.
     :param args: The parsed user parameters.
     :type args: args.
+    :return: The failed tracks list (empty if succeeded).
     """
     # Validate and fix arguments.
     if args.client and not args.client.lower() in\
@@ -34,11 +36,10 @@ def organize(args):
     if args.grabber and not args.grabber.lower() in\
             [g().name.lower() for g in GRABBERS_LIST]:
         raise OrganizerException("Invalid lyrics website")
-    if not args.fake:
-        if not args.path or not os.path.exists(args.path):
-            raise PathException("Invalid path")
-        if args.image_path and not os.path.exists(args.image_path):
-            raise PathException("Invalid images path")
+    if not args.path or not os.path.exists(args.path):
+        raise PathException("Invalid path")
+    if args.image_path and not os.path.exists(args.image_path):
+        raise PathException("Invalid images path")
     if args.path.endswith(os.path.sep):
         args.path = os.path.dirname(args.path)
     args.album = get_album(args.path, args.album)
@@ -49,30 +50,30 @@ def organize(args):
         if args.verbose:
             print "No album was found. Exiting..."
         return
-
-    edit_files(args)
-
-    # TODO - FOR TESTING PURPOSES.. REMOVE!!
-    if args.verbose:
-        print album.tracks_list
-    return album.tracks_list
+    return edit_files(args, album)
 
 
-def edit_files(args):
+def edit_files(args, album):
     """
     Edits all the files according to the album data.
     :param args: The running parameters.
     :type args: args.
+    :param album: The album data, received earlier from the client.
+    :type album: album.
+    :return: The failed tracks list (empty if succeeded).
     """
-    grabbers = GRABBERS_LIST
     # If user supplied a specific lyrics website, put it first on the list.
+    grabbers = GRABBERS_LIST
     if args.grabber:
         for index, grabber_class in enumerate(grabbers):
             if grabber_class().name.lower() == args.grabber.lower():
                 grabber_index = index
                 grabbers.insert(0, grabbers.pop(grabber_index))
                 break
-    # TODO - Create the editor and do everything.
+
+    editor = FilesEditor(args.path, album, grabbers, args.prompt,
+                         args.web, args.verbose)
+    return editor.edit_tracks()
 
 
 def get_album_data(args):
@@ -101,6 +102,9 @@ def get_album_data(args):
             result = client.find_album(args.album, args.artist,
                                        prompt=args.prompt, web=args.web)
             if result:
+                # Add genre received from user and return the album data.
+                if args.genre:
+                    result.genre = args.genre
                 return result
         except Exception, e:
             if args.verbose:
@@ -125,7 +129,6 @@ def get_arguments():
     quiet - If true, no log messages will be displayed on the screen.
     automatic - If true, user will not be prompted to approve album correctness.
     web - If true, a new tab in the browser will pop up with the album's information.
-    fake - If true, path doesn't exist and no actual files will be changed.
     """
     parser = ArgumentParser(description="Organize an MP3 files directory")
     required_group = parser.add_mutually_exclusive_group(required=True)
@@ -152,8 +155,6 @@ def get_arguments():
                         help="Don't ask the user for input at certain points")
     parser.add_argument("-w", "--no-web", action="store_false", dest="web", default=True,
                         help="Don't open a new browser tab with the album's information")
-    parser.add_argument("-f", "--fake", action="store_true", dest="fake", default=False,
-                        help="Fake path for testing purposes")
     return parser.parse_args()
 
 
