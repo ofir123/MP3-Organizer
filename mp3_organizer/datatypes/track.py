@@ -19,7 +19,8 @@ class Track(object):
         :type title: str.
         """
         self.number = str(number) if len(str(number)) > 1 else '0' + str(number)
-        self.title = ' '.join(x.capitalize() for x in title.strip().split(' '))
+        self.title = ' '.join(x.capitalize() for x in
+                              title.replace('\\', ' - ').replace('/', ' - ').strip().split(' '))
 
     def __eq__(self, other):
         """

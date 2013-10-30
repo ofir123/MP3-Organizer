@@ -25,8 +25,8 @@ class Album(object):
         :param tracks_list: The tracks_list.
         :type tracks_list: list.
         """
-        self.name = name
-        self.artist = artist
+        self.name = ' '.join(x.capitalize() for x in name.strip().split(' '))
+        self.artist = ' '.join(x.capitalize() for x in artist.strip().split(' '))
         self.genre = genre
         self.year = year
         self.artwork_path = artwork_path

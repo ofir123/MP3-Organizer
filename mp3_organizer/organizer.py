@@ -28,7 +28,7 @@ from editor import FilesEditor
 # The ordered clients list.
 CLIENTS_LIST = [AmazonClient, GracenoteClient]
 # The ordered grabbers list.
-GRABBERS_LIST = [LyricscomGrabber, LyricswikiGrabber]
+GRABBERS_LIST = [LyricswikiGrabber, LyricscomGrabber]
 
 
 class OrganizerException(Exception):

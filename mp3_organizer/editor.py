@@ -85,19 +85,19 @@ class FilesEditor(object):
         """
         # Get all file names and normalize them.
         files = glob.glob(os.path.join(self.path, "*" + FilesEditor.FILES_EXTENSION))
+         # Try and find the track's number.
+        for filename in files:
+            if len(re.findall("\\b" + track.number + "\\b",
+                              normalize_name(os.path.splitext(os.path.basename(filename))[0]))) > 0:
+                if self.verbose:
+                    logger.debug("Found track by its number.")
+                return filename
         # Try and find the track's name.
         for filename in files:
             if len(re.findall("\\b" + normalize_name(track.title) + "\\b",
                               normalize_name(os.path.splitext(os.path.basename(filename))[0]))) > 0:
                 if self.verbose:
                     logger.debug("Found track by its name.")
-                return filename
-        # Try and find the track's number.
-        for filename in files:
-            if len(re.findall("\\b" + track.number + "\\b",
-                              normalize_name(os.path.splitext(os.path.basename(filename))[0]))) > 0:
-                if self.verbose:
-                    logger.debug("Found track by its number.")
                 return filename
         if self.verbose:
             logger.warning("Track not found.")
@@ -192,7 +192,7 @@ class FilesEditor(object):
                              text=result_lyrics))
                 results.lyrics = True
             elif self.verbose:
-                logger.warning("Failed to find lyrics.")
+                logger.warning("Couldn't find lyrics.")
         # Remove unnecessary information.
         tag.delall('COMM')
         tag.delall('TCOM')
