@@ -107,5 +107,6 @@ class TestEditor:
         assert len(artwork) == 1
         lyrics = test_file.getall("USLT")
         assert len(lyrics) == 1
-        assert lyrics[0].text.lower().startswith(TEST_LYRICS_START)
+        assert lyrics[0].text.lower().startswith(TEST_LYRICS_START) or \
+               lyrics[0].text.lower().startswith(TEST_LYRICS_START2)
         assert lyrics[0].text.lower().endswith(TEST_LYRICS_END)

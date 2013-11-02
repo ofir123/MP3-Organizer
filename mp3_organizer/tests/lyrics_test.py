@@ -2,8 +2,13 @@ __author__ = 'Halti'
 
 import pytest
 from test_consts import *
+from mp3_organizer.lyrics.azlyrics_grabber import *
 from mp3_organizer.lyrics.lyricscom_grabber import *
 from mp3_organizer.lyrics.lyricswiki_grabber import *
+
+
+def azlyrics_test_grabber():
+    return AZLyricsGrabber()
 
 
 def lyricscom_test_grabber():
@@ -28,5 +33,6 @@ class TestClient:
     def test_track_and_artist(self, test_grabber):
         lyrics = test_grabber.find_lyrics(TEST_TRACK.title, artist=TEST_ARTIST,
                                           prompt=False, web=False)
-        assert lyrics.lower().startswith(TEST_LYRICS_START)
+        assert lyrics.lower().startswith(TEST_LYRICS_START) or \
+               lyrics.lower().startswith(TEST_LYRICS_START2)
         assert lyrics.lower().endswith(TEST_LYRICS_END)

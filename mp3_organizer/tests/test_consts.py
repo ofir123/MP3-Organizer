@@ -22,6 +22,7 @@ TEST_INVALID_TITLE = "asdfasdfsdflsdjaflas"
 TEST_BASE_PATH = "C:\\MP3_TESTS\\"
 TEST_PATH = os.path.join(TEST_BASE_PATH, TEST_ARTIST, TEST_ALBUM)
 TEST_LYRICS_START = u"bones sinking like stones"
+TEST_LYRICS_START2 = u"bones, sinking like stones,"
 TEST_LYRICS_END = u"got somebody to lean on"
 
 # Test files constants.
