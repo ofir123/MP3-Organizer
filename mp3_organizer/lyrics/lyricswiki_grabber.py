@@ -45,7 +45,7 @@ class LyricswikiGrabber(Grabber):
         if lyrics and 'Unfortunately, we are not licensed' not in lyrics:
             return lyrics
         if self.verbose:
-            logger.warning("Couldn't find lyrics.")
+            logger.debug("Couldn't find lyrics.")
 
     def _encode(self, string):
         """

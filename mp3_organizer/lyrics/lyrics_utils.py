@@ -32,7 +32,7 @@ def extract_text(html, start_tag, verbose=True):
             _, html = html.split(start_tag, 1)
         except ValueError:
             if verbose:
-                logger.error("Couldn't find start tag - " + start_tag + ".")
+                logger.debug("Couldn't find start tag - " + start_tag + ".")
             return
 
         # Walk through balanced DIV tags.

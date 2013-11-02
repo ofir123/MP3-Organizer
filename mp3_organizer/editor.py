@@ -79,26 +79,32 @@ class FilesEditor(object):
     def _find_track(self, track):
         """
         Finds the given track by name, or by number.
+        When searching by name, always returns the shortest result.
         :param track: The track to find.
         :type track: track.
         :return: The track's file name, or None if not found.
         """
         # Get all file names and normalize them.
         files = glob.glob(os.path.join(self.path, "*" + FilesEditor.FILES_EXTENSION))
-         # Try and find the track's number.
+        # Try and find the track's name.
+        optional_files = []
+        for filename in files:
+            if len(re.findall("\\b" + normalize_name(track.title) + "\\b",
+                              normalize_name(os.path.splitext(os.path.basename(filename))[0]))) > 0:
+                optional_files.append(filename)
+        if len(optional_files) > 0:
+            if self.verbose:
+                logger.debug("Found track by its name.")
+            optional_files.sort(key=len)
+            return optional_files[0]
+        # Try and find the track's number.
         for filename in files:
             if len(re.findall("\\b" + track.number + "\\b",
                               normalize_name(os.path.splitext(os.path.basename(filename))[0]))) > 0:
                 if self.verbose:
                     logger.debug("Found track by its number.")
                 return filename
-        # Try and find the track's name.
-        for filename in files:
-            if len(re.findall("\\b" + normalize_name(track.title) + "\\b",
-                              normalize_name(os.path.splitext(os.path.basename(filename))[0]))) > 0:
-                if self.verbose:
-                    logger.debug("Found track by its name.")
-                return filename
+        # No file was found.
         if self.verbose:
             logger.warning("Track not found.")
         return None
@@ -113,7 +119,7 @@ class FilesEditor(object):
         for grabber_class in self.grabbers_list:
             grabber = grabber_class(verbose=self.verbose)
             if self.verbose:
-                logger.debug("Checking " + str(grabber) + " for lyrics.")
+                logger.info("Checking " + str(grabber) + " for lyrics.")
             try:
                 result = grabber.find_lyrics(track.title, artist=self.album.artist,
                                              album=self.album.name, prompt=self.prompt,
@@ -125,9 +131,10 @@ class FilesEditor(object):
             except Exception, e:
                 if self.verbose:
                     logger.debug(e)
-                    logger.warning("Failed when using " + str(grabber) + ".")
+                    logger.warning("Error occurred when using " + str(grabber) + ".")
             if self.verbose:
-                logger.debug("Proceeding to next grabber.")
+                logger.debug("Lyrics not found using " + str(grabber) +
+                             ". Proceeding to next grabber.")
 
     def edit_track(self, track, rename=True, lyrics=True):
         """
@@ -169,7 +176,8 @@ class FilesEditor(object):
         tag.add(TIT2(encoding=3, text=track.title))
         tag.add(TPE1(encoding=3, text=self.album.artist))
         tag.add(TPE2(encoding=3, text=self.album.artist))
-        tag.add(TALB(encoding=3, text=self.album.name))
+        album_suffix = " CD " + str(track.disc_num) if track.disc_num else ""
+        tag.add(TALB(encoding=3, text=self.album.name + album_suffix))
         tag.add(TCON(encoding=3, text=self.album.genre))
         tag.add(TDRC(encoding=3, text=str(self.album.year)))
         # Edit the artwork.
@@ -192,7 +200,7 @@ class FilesEditor(object):
                              text=result_lyrics))
                 results.lyrics = True
             elif self.verbose:
-                logger.warning("Couldn't find lyrics.")
+                logger.info("Couldn't find lyrics.")
         # Remove unnecessary information.
         tag.delall('COMM')
         tag.delall('TCOM')

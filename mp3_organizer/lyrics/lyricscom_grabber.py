@@ -48,7 +48,7 @@ class LyricscomGrabber(Grabber):
         for not_found_str in LyricscomGrabber.LYRICSCOM_NOT_FOUND:
             if not_found_str in lyrics:
                 if self.verbose:
-                    logger.warning("Couldn't find lyrics.")
+                    logger.debug("Couldn't find lyrics.")
                 return
 
         parts = lyrics.split('\n---\nLyrics powered by', 1)

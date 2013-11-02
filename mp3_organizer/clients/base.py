@@ -94,6 +94,7 @@ class Client(object):
         :type album: str.
         :return: The artwork's path.
         """
+        album = ' '.join(x.capitalize() for x in album.strip().split(' '))
         image_path = os.path.join(self.artwork_folder, album + Client.ARTWORK_EXTENSION)
         image_file = open(image_path, 'wb')
         image_file.write(image_data)
