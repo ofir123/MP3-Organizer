@@ -122,8 +122,7 @@ class FilesEditor(object):
                 logger.info("Checking " + str(grabber) + " for lyrics.")
             try:
                 result = grabber.find_lyrics(track.title, artist=self.album.artist,
-                                             album=self.album.name, prompt=self.prompt,
-                                             web=self.web)
+                                             album=self.album.name)
                 if result:
                     if self.verbose:
                         logger.debug("Lyrics found!")

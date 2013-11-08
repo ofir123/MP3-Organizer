@@ -20,7 +20,7 @@ class Grabber(object):
     def get_name():
         return "Unknown"
 
-    def find_lyrics(self, track, artist=None, album=None, prompt=True, web=True):
+    def find_lyrics(self, track, artist, album):
         """
         Searches website for the track and returns its lyrics.
         :param track: The track's title.
@@ -29,10 +29,6 @@ class Grabber(object):
         :type artist: str.
         :param album: The album's name.
         :type album: str.
-        :param prompt: Whether or not to prompt the user for approval.
-        :type prompt: bool.
-        :param web: Whether or not to open a browser with the album's information.
-        :type web: bool.
         :returns: The tracks' lyrics, or None.
         """
         raise NotImplementedError("Grabber didn't implement this method.")

@@ -1,7 +1,7 @@
 __author__ = 'Ofir'
 
 import re
-from lyrics_utils import encode, fetch_url, extract_text
+from mp3_organizer.lyrics.lyrics_utils import encode, fetch_url, extract_text
 from mp3_organizer.lyrics.base import Grabber
 
 import logging
@@ -21,7 +21,7 @@ class LyricscomGrabber(Grabber):
     def get_name():
         return "Lyrics.com"
 
-    def find_lyrics(self, track, artist, album=None, prompt=True, web=True):
+    def find_lyrics(self, track, artist, album=None):
         """
         Searches 'lyrics.com' for the lyrics.
         :param track: The track's title.
@@ -30,10 +30,6 @@ class LyricscomGrabber(Grabber):
         :type artist: str.
         :param album: The album's name.
         :type album: str.
-        :param prompt: Whether or not to prompt the user for approval.
-        :type prompt: bool.
-        :param web: Whether or not to open a browser with the album's information.
-        :type web: bool.
         :returns: The track's lyrics, or None.
         """
         url = LyricscomGrabber.LYRICSCOM_URL_PATTERN % (self._encode(track),
@@ -43,7 +39,8 @@ class LyricscomGrabber(Grabber):
             return
 
         lyrics = extract_text(html, '<div id="lyric_space">', self.verbose)
-        if not lyrics:
+        if not lyrics and self.verbose:
+            logger.debug("Couldn't find lyrics.")
             return
         for not_found_str in LyricscomGrabber.LYRICSCOM_NOT_FOUND:
             if not_found_str in lyrics:

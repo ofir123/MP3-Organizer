@@ -23,13 +23,14 @@ from clients.gracenote.gracenote_client import GracenoteClient
 from mp3_organizer.lyrics.lyricscom_grabber import LyricscomGrabber
 from mp3_organizer.lyrics.lyricswiki_grabber import LyricswikiGrabber
 from mp3_organizer.lyrics.azlyrics_grabber import AZLyricsGrabber
+from mp3_organizer.lyrics.songlyrics_grabber import SongLyricsGrabber
 from file_utils import *
 from editor import FilesEditor
 
 # The ordered clients list.
 CLIENTS_LIST = [AmazonClient, GracenoteClient]
 # The ordered grabbers list.
-GRABBERS_LIST = [AZLyricsGrabber, LyricswikiGrabber, LyricscomGrabber]
+GRABBERS_LIST = [AZLyricsGrabber, LyricswikiGrabber, LyricscomGrabber, SongLyricsGrabber]
 
 
 class OrganizerException(Exception):

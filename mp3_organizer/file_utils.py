@@ -1,6 +1,7 @@
 __author__ = 'Halti'
 
 import os.path
+import re
 
 
 class PathException(Exception):
@@ -28,12 +29,13 @@ def get_mime_type(filename):
 def normalize_name(filename):
     """
     normalizes the file name by stripping spaces, converting to lower case,
-    and removing '_' characters (which don't work with the '\b' option in re).
+    and removing non-letter characters (which don't work well with the '\b' option in re).
     :param filename: The file's name.
     :type filename: str.
     :return: The normalized filename.
     """
-    return filename.strip().lower().replace("_", " ").replace(".", " ").replace("-", " ")
+    simple_string = re.sub("[^0-9a-zA-Z]", " ", filename).lower()
+    return " ".join(filter(lambda x: len(x) > 0, simple_string.split(" ")))
 
 
 def get_album(path, album_argument=None):

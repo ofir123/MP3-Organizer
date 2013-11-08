@@ -9,20 +9,21 @@ from mp3_organizer.organizer import LOGGER_NAME
 logger = logging.getLogger(LOGGER_NAME)
 
 
-class LyricswikiGrabber(Grabber):
+class SongLyricsGrabber(Grabber):
     """
-    Supplies simple functions for finding lyrics in 'lyrics wiki'.
+    Supplies simple functions for finding lyrics in 'Song Lyrics'.
     """
 
-    LYRICSWIKI_URL_PATTERN = 'http://lyrics.wikia.com/%s:%s'
+    SONGLYRICS_URL_PATTERN = 'http://www.songlyrics.com/%s/%s-lyrics/'
+    SONGLYRICS_NOT_FOUND = ('We do not have the lyrics', 'Sorry, we have no')
 
     @staticmethod
     def get_name():
-        return "Lyrics Wiki"
+        return "Song Lyrics"
 
     def find_lyrics(self, track, artist, album=None):
         """
-        Searches 'lyrics wiki' for the lyrics.
+        Searches 'song lyrics' for the lyrics.
         :param track: The track's title.
         :type track: str.
         :param artist: The artist's name.
@@ -31,35 +32,37 @@ class LyricswikiGrabber(Grabber):
         :type album: str.
         :returns: The track's lyrics, or None.
         """
-        url = LyricswikiGrabber.LYRICSWIKI_URL_PATTERN % (self._encode(artist),
+        url = SongLyricsGrabber.SONGLYRICS_URL_PATTERN % (self._encode(artist),
                                                           self._encode(track))
         html = fetch_url(url, self.verbose)
         if not html:
             return
 
-        lyrics = extract_text(html, "<div class='lyricbox'>", self.verbose)
-        if lyrics and 'Unfortunately, we are not licensed' not in lyrics:
-            return lyrics
-        if self.verbose:
+        lyrics = extract_text(html, '<div id="songLyricsDiv-outer">', self.verbose)
+        if not lyrics and self.verbose:
             logger.debug("Couldn't find lyrics.")
+            return
+        for not_found_str in SongLyricsGrabber.SONGLYRICS_NOT_FOUND:
+            if not_found_str in lyrics:
+                if self.verbose:
+                    logger.debug("Couldn't find lyrics.")
+                return
+        return lyrics
 
     def _encode(self, string):
         """
-        Encoding function specifically for 'Lyrics Wiki'.
+        Encoding function specifically for 'Song Lyrics'.
         :param string: The string to encode.
         :type string: str.
         :return: The encoded string.
         """
-        string = re.sub(r'\s+', '_', string)
-        string = string.replace("<", "Less_Than")
-        string = string.replace(">", "Greater_Than")
-        string = string.replace("#", "Number_")
-        string = re.sub(r'[\[\{]', '(', string)
-        string = re.sub(r'[\]\}]', ')', string)
+        string = re.sub('[^a-zA-Z0-9]', '-', string).lower()
+        if string.endswith("-"):
+            string = string[:-1]
         return encode(string)
 
     def __repr__(self):
         """
         Prints the name of the website.
         """
-        return "'Lyrics Wiki' website"
+        return "'Song Lyrics' website"

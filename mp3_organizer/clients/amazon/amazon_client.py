@@ -121,12 +121,12 @@ class AmazonClient(Client):
         """
         tracks_list = []
         current_disc = result.item.Tracks.Disc
-        multiple_discs = True if current_disc.getnext() else False
+        multiple_discs = True if current_disc.getnext() is not None else False
         disc_num = 1 if multiple_discs else None
         while current_disc is not None:
             for track_number, track_name in enumerate(current_disc.getchildren()):
                 tracks_list.append(Track(track_number+1, track_name.text, disc_num))
             current_disc = current_disc.getnext()
-            if current_disc:
+            if current_disc is not None:
                 disc_num += 1
         return tracks_list

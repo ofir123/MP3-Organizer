@@ -1,7 +1,7 @@
 __author__ = 'Ofir'
 
 import re
-from lyrics_utils import encode, fetch_url, extract_text
+from mp3_organizer.lyrics.lyrics_utils import encode, fetch_url, extract_text
 from mp3_organizer.lyrics.base import Grabber
 
 import logging
@@ -20,19 +20,15 @@ class AZLyricsGrabber(Grabber):
     def get_name():
         return "AZ Lyrics"
 
-    def find_lyrics(self, track, artist, album=None, prompt=True, web=True):
+    def find_lyrics(self, track, artist, album=None):
         """
-        Searches 'lyrics wiki' for the lyrics.
+        Searches 'az lyrics' for the lyrics.
         :param track: The track's title.
         :type track: str.
         :param artist: The artist's name.
         :type artist: str.
         :param album: The album's name.
         :type album: str.
-        :param prompt: Whether or not to prompt the user for approval.
-        :type prompt: bool.
-        :param web: Whether or not to open a browser with the album's information.
-        :type web: bool.
         :returns: The track's lyrics, or None.
         """
         url = AZLyricsGrabber.AZLYRICS_URL_PATTERN % (self._encode(artist),
@@ -53,8 +49,10 @@ class AZLyricsGrabber(Grabber):
         :type string: str.
         :return: The encoded string.
         """
-        string = re.sub('[^a-zA-Z0-9]', '', string)
-        return encode(string.lower())
+        string = re.sub('[^a-zA-Z0-9]', '', string).lower()
+        if string.startswith("the"):
+            string = string[3:]
+        return encode(string)
 
     def __repr__(self):
         """
