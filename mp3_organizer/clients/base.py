@@ -1,6 +1,7 @@
 __author__ = 'Ofir'
 
 import os
+from mp3_organizer.file_utils import normalize_name
 
 
 class ConnectionException(Exception):
@@ -94,7 +95,8 @@ class Client(object):
         :type album: str.
         :return: The artwork's path.
         """
-        album = ' '.join(x.capitalize() for x in album.strip().split(' '))
+        normalized_album = normalize_name(album)
+        album = ' '.join(x.capitalize() for x in normalized_album.split(' '))
         image_path = os.path.join(self.artwork_folder, album + Client.ARTWORK_EXTENSION)
         image_file = open(image_path, 'wb')
         image_file.write(image_data)
