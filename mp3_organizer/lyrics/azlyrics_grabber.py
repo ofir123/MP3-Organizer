@@ -31,7 +31,7 @@ class AZLyricsGrabber(Grabber):
         :type album: str.
         :returns: The track's lyrics, or None.
         """
-        url = AZLyricsGrabber.AZLYRICS_URL_PATTERN % (self._encode(artist),
+        url = AZLyricsGrabber.AZLYRICS_URL_PATTERN % (self._encode(artist, is_artist=True),
                                                       self._encode(track))
         html = fetch_url(url, self.verbose)
         if not html:
@@ -42,7 +42,7 @@ class AZLyricsGrabber(Grabber):
             logger.debug("Couldn't find lyrics.")
         return lyrics
 
-    def _encode(self, string):
+    def _encode(self, string, is_artist=False):
         """
         Encoding function specifically for 'AZ Lyrics'.
         :param string: The string to encode.
@@ -50,7 +50,7 @@ class AZLyricsGrabber(Grabber):
         :return: The encoded string.
         """
         string = re.sub('[^a-zA-Z0-9]', '', string).lower()
-        if string.startswith("the"):
+        if is_artist and string.startswith("the"):
             string = string[3:]
         return encode(string)
 

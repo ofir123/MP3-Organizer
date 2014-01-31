@@ -97,13 +97,15 @@ class FilesEditor(object):
                 logger.debug("Found track by its name.")
             optional_files.sort(key=len)
             return optional_files[0]
-        # Try and find the track's number.
+        """
+        # Try and find the track's number - NOT WORKING SO WELL.
         for filename in files:
             if len(re.findall("\\b" + track.number + "\\b",
                               normalize_name(os.path.splitext(os.path.basename(filename))[0]))) > 0:
                 if self.verbose:
                     logger.debug("Found track by its number.")
                 return filename
+        """
         # No file was found.
         if self.verbose:
             logger.warning("Track not found.")

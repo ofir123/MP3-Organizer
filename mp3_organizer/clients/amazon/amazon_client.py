@@ -19,7 +19,7 @@ class AmazonClient(Client):
     """
 
     SEARCH_INDEX = "Music"
-    ALBUM_BINDING = "Audio CD"
+    VALID_BINDINGS = ["Audio CD", "Vinyl"]
 
     @staticmethod
     def get_name():
@@ -66,7 +66,7 @@ class AmazonClient(Client):
                 result_artist = result.item.ItemAttributes.Artist.text.capitalize()
                 result_album = result.title.capitalize()
                 # Check if the result is an album.
-                if result.item.ItemAttributes.Binding != AmazonClient.ALBUM_BINDING:
+                if not result.item.ItemAttributes.Binding in AmazonClient.VALID_BINDINGS:
                     continue
                 # Open the item's web page in a new tab, to help the user.
                 if web:
