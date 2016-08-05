@@ -1,4 +1,4 @@
-mp3_organizer/clients/amazon/amazon_account.py
+mp3organizer/clients/amazon/amazon_account.py
 
 *.py[cod]
 
