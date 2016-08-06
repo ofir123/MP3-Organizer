@@ -23,7 +23,7 @@ def setup(request):
     test_files_directory = os.path.join(os.path.dirname(__file__), TEST_FILES_DIRECTORY)
     for track in TEST_TRACKS_LIST:
         shutil.copy2(os.path.join(test_files_directory, TEST_FILE_AUDIO),
-                     os.path.join(TEST_PATH, '{}.mp3'.format(track.number)))
+                     os.path.join(TEST_PATH, '{}.mp3'.format(track.title)))
 
     original_argv = sys.argv
     sys.argv = [organizer.__file__]
@@ -76,4 +76,4 @@ def test_normal():
     assert len(artwork_files) == 1
     assert os.path.splitext(os.path.basename(artwork_files[0]))[0] == TEST_ALBUM
     # Check no other files were created.
-    assert len(glob.glob(os.path.join(TEST_PATH, '*.*'))) == len(TEST_TRACKS_LIST) + 1
+    assert len(os.listdir(TEST_PATH)) == len(TEST_TRACKS_LIST) + 1

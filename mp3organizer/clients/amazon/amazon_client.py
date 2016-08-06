@@ -77,19 +77,23 @@ class AmazonClient(Client):
                         logger.debug('Getting more info on result: {} by {}'.format(result_album, result_artist))
                     # Get extra data and return the result.
                     result_year = self._get_release_year(result.item.ItemAttributes.ReleaseDate.text)
-                    image_data = urllib.request.urlopen(result.item.LargeImage.URL.text).read()
-                    result_artwork = None
-                    if self.artwork_folder:
-                        result_artwork = self._save_image(image_data, result_album)
-                        if self.verbose:
-                            logger.debug('Artwork found!')
+                    try:
+                        image_data = urllib.request.urlopen(result.item.LargeImage.URL.text).read()
+                        result_artwork = None
+                        if self.artwork_folder:
+                            result_artwork = self._save_image(image_data, album)
+                            if self.verbose:
+                                logger.debug('Artwork found!')
+                    except AttributeError:
+                        logger.debug('Artwork not found!')
+                        result_artwork = None
                     if self.verbose:
                         logger.debug('Finished extracting information from the service.')
-                    return Album(result_album, result_artist, artwork_path=result_artwork,
+                    return Album(album, artist or result_artist, artwork_path=result_artwork,
                                  year=result_year, tracks_list=tracks_list)
-            except AttributeError:
+            except AttributeError as ex:
                 # This result wasn't an Audio CD. Move on to the next result.
-                logger.warning('Bad result, moving on to the next one...')
+                logger.warning('Bad result ({}), moving on to the next one...'.format(ex))
 
         return None
 

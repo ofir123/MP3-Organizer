@@ -4,7 +4,8 @@ import re
 
 import logbook
 from mutagen.id3 import ID3, TRCK, TIT2, TPE1, TPE2, TALB, TCON, TDRC, APIC, USLT, ID3NoHeaderError
-from file_utils import normalize_name, get_mime_type
+
+from .file_utils import normalize_name, get_mime_type
 
 logger = logbook.Logger('MP3OrganizerEditor')
 
@@ -61,7 +62,7 @@ class FilesEditor(object):
 
     def _find_track(self, track):
         """
-        Finds the given track by name, or by number.
+        Finds the given track by name.
         When searching by name, always returns the shortest result.
 
         :param track: The track to find.
@@ -148,7 +149,7 @@ class FilesEditor(object):
         tag.add(TIT2(encoding=3, text=track.title))
         tag.add(TPE1(encoding=3, text=self.album.artist))
         tag.add(TPE2(encoding=3, text=self.album.artist))
-        album_suffix = ' CD {}'.format(track.disc_num if track.disc_num else '')
+        album_suffix = ' CD {}'.format(track.disc_num) if track.disc_num else ''
         tag.add(TALB(encoding=3, text=self.album.name + album_suffix))
         tag.add(TCON(encoding=3, text=self.album.genre))
         tag.add(TDRC(encoding=3, text=str(self.album.year)))

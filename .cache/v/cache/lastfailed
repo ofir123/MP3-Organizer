@@ -1,3 +1,3 @@
 {
-  "tests/clients_test.py::test_not_found[test_client1]": true
+  "tests/clients_test.py::test_album_and_artist[test_client0]": true
 }

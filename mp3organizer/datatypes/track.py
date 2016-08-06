@@ -16,7 +16,8 @@ class Track(object):
         :param disc_num: The Disc number (if there are multiple discs in the album).
         """
         self.number = str(number) if len(str(number)) > 1 else '0' + str(number)
-        self.title = ' '.join(x.capitalize() for x in title.replace('\\', ' - ').replace('/', ' - ').strip().split(' '))
+        self.title = ' '.join(x.capitalize() for x in title.replace('\\', ' - ').replace('/', ' - ').replace('?', '').
+                              strip().split(' '))
         self.disc_num = disc_num
 
     def __eq__(self, other):

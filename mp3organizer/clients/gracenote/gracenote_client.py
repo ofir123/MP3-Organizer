@@ -68,12 +68,12 @@ class GracenoteClient(Client):
                     image_data = urllib.request.urlopen(result[GracenoteAPI.ALBUM_ART_URL]).read()
                     result_artwork = None
                     if self.artwork_folder:
-                        result_artwork = self._save_image(image_data, result_album)
+                        result_artwork = self._save_image(image_data, album)
                         if self.verbose:
                             logger.debug('Artwork found!')
                     if self.verbose:
                         logger.debug('Finished extracting information from the service.')
-                    return Album(result_album, result_artist, artwork_path=result_artwork,
+                    return Album(album, artist or result_artist, artwork_path=result_artwork,
                                  year=result_year, tracks_list=tracks_list)
             except KeyError:
                 # This result didn't not contain all the necessary information.

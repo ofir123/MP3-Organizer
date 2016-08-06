@@ -33,7 +33,7 @@ class LyricswikiGrabber(Grabber):
         if not html:
             return
 
-        lyrics = extract_text(html, '<div class="lyricbox">', self.verbose)
+        lyrics = extract_text(html, '<div class=\'lyricbox\'>', self.verbose)
         if lyrics and 'Unfortunately, we are not licensed' not in lyrics:
             return lyrics
         if self.verbose:

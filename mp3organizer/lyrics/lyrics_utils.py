@@ -1,4 +1,6 @@
-import urllib
+import urllib.request
+import urllib.parse
+import urllib.error
 import re
 
 import logbook
@@ -30,7 +32,7 @@ def extract_text(html, start_tag, verbose=True):
             _, html = html.split(start_tag, 1)
         except ValueError:
             if verbose:
-                logger.debug('Couldn\'t find start tag - ' + start_tag + '.')
+                logger.debug('Couldn\'t find start tag - {}.'.format(start_tag))
             return
 
         # Walk through balanced DIV tags.
@@ -93,7 +95,6 @@ def encode(string):
     """
     for char, replace in URL_CHARACTERS.items():
         string = string.replace(char, replace)
-    string = string.encode('UTF-8', errors='ignore')
     return urllib.parse.quote(string)
 
 
@@ -105,7 +106,7 @@ def unescape(text):
     :return: The unescaped text.
     """
     out = text.replace('&nbsp;', ' ')
-    out = re.sub(r'&#(\d+);', lambda x: int(x.group(1)), out)
+    out = re.sub(r'&#(\d+);', lambda x: chr(int(x.group(1))), out)
     return out
 
 
@@ -117,7 +118,11 @@ def fetch_url(url, verbose=True):
     :return: The content of this URL, or None.
     """
     try:
-        return urllib.request.urlopen(url).read()
+        return urllib.request.urlopen(url).read().decode('UTF-8', errors='replace')
+    except urllib.error.HTTPError:
+        if verbose:
+            logger.debug('failed to fetch: {}'.format(url))
+        return None
     except IOError:
         if verbose:
             logger.exception('failed to fetch: {}'.format(url))

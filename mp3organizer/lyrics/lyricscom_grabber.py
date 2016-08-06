@@ -34,7 +34,7 @@ class LyricscomGrabber(Grabber):
         if not html:
             return
 
-        lyrics = extract_text(html, '<div id="lyric_space">', self.verbose)
+        lyrics = extract_text(html, '<div id="lyrics" class="SCREENONLY" itemprop="description">', self.verbose)
         if not lyrics and self.verbose:
             logger.debug('Couldn\'t find lyrics.')
             return

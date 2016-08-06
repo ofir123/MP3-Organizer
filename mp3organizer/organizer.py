@@ -198,6 +198,8 @@ def get_arguments():
                         help='Don\'t ask the user for input at certain points')
     parser.add_argument('-w', '--no-web', action='store_false', dest='web', default=True,
                         help='Don\'t open a new browser tab with the album\'s information')
+    parser.add_argument('-d', '--logs-directory', dest='logs_directory',
+                        help='The directory to save log files in.')
     return parser.parse_args()
 
 
@@ -211,22 +213,22 @@ def main():
     args = get_arguments()
     # Print the clients menu, if asked by the user.
     if args.clients_menu:
-        logger.info('Available clients are (sorted by order of quality):')
+        print('Available clients are (sorted by order of quality):')
         for client_class in CLIENTS_LIST:
-            logger.info(client_class.get_name())
-        logger.info('Please run the program again with your choice, '
-                    'or without one to use default order.')
+            print(client_class.get_name())
+        print('Please run the program again with your choice, '
+              'or without one to use default order.')
         return
     # Print the lyrics menu, if asked by the user.
     if args.lyrics_menu:
-        logger.info('Available lyrics websites are (sorted by order of quality):')
+        print('Available lyrics websites are (sorted by order of quality):')
         for grabber_class in GRABBERS_LIST:
-            logger.info(grabber_class.get_name())
-        logger.info('Please run the program again with your choice, '
-                    'or without one to use default order.')
+            print(grabber_class.get_name())
+        print('Please run the program again with your choice, '
+              'or without one to use default order.')
         return
-
-    return organize(args)
+    with logbook.NestedSetup(_get_log_handlers(args.logs_directory)).applicationbound():
+        return organize(args)
 
 
 if __name__ == '__main__':

@@ -2,11 +2,11 @@ import os
 
 from mp3organizer.datatypes.track import Track
 
-TEST_TRACK = Track(1, 'Don\'t Panic')
+TEST_TRACK = Track(5, 'Yellow')
 TEST_ALBUM = 'Parachutes'
 TEST_ARTIST = 'Coldplay'
 TEST_GENRE = 'Rock'
-TEST_YEAR = 2000
+TEST_YEAR = 2001
 TEST_TRACKS_LIST = [
     Track(1, 'Don\'t Panic'),
     Track(2, 'Shiver'),
@@ -17,14 +17,16 @@ TEST_TRACKS_LIST = [
     Track(7, 'Parachutes'),
     Track(8, 'High Speed'),
     Track(9, 'We Never Change'),
-    Track(10, 'Everything\'s Not Lost')
+    Track(10, 'Everything\'s Not Lost (includes Hidden Track \'life Is For Living\')')
 ]
 TEST_INVALID_TITLE = 'asdfasdfsdflsdjaflas'
-TEST_BASE_PATH = 'C:\\MP3_TESTS\\'
+TEST_BASE_PATH = 'C:\\Temp\\MP3_TESTS\\'
 TEST_PATH = os.path.join(TEST_BASE_PATH, TEST_ARTIST, TEST_ALBUM)
-TEST_LYRICS_START = 'bones sinking like stones'
-TEST_LYRICS_START2 = 'bones, sinking like stones,'
-TEST_LYRICS_END = 'got somebody to lean on'
+TEST_LYRICS_START = 'look at the stars'
+TEST_LYRICS_START2 = 'your skin, your skin'
+TEST_LYRICS_END = '---'
+TEST_LYRICS_END2 = 'and all the things that you do'
+TEST_LYRICS_END3 = 'and all the things that you do.'
 
 # Test files constants.
 TEST_FILES_DIRECTORY = 'test_files'

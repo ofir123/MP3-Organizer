@@ -33,7 +33,8 @@ class AZLyricsGrabber(Grabber):
         if not html:
             return
 
-        lyrics = extract_text(html, '<!-- start of lyrics -->', self.verbose)
+        lyrics = extract_text(html, '<!-- Usage of azlyrics.com content by any third-party lyrics provider is '
+                                    'prohibited by our licensing agreement. Sorry about that. -->', self.verbose)
         if not lyrics and self.verbose:
             logger.debug('Couldn\'t find lyrics.')
         return lyrics

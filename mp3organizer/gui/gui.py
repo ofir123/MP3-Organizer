@@ -1,30 +1,29 @@
 import sys
+import logbook
 from pathlib import Path
 
-import logbook
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
-from .arguments import Arguments
-from ..organizer import organize, CLIENTS_LIST, GRABBERS_LIST
-from ..file_utils import get_album, get_artist, PathException
+from mp3organizer.gui.arguments import Arguments
+from mp3organizer.organizer import organize, CLIENTS_LIST, GRABBERS_LIST
+from mp3organizer.file_utils import get_album, get_artist, PathException
 
 logger = logbook.Logger('MP3OrganizerGUI')
 
 
-class ConsoleLogHandler(logbook.Handler):
+class ConsoleLogStream(object):
     """
     A customized log handler that writes all messages to a text window.
     """
     def __init__(self, text_box):
-        super(ConsoleLogHandler, self).__init__()
         self.text_box = text_box
-        self.setLevel(logbook.INFO)
 
-    def emit(self, log_record):
-        self.text_box.append(str(log_record.getMessage()))
+    def write(self, data):
+        self.text_box.append(data)
+        QtWidgets.QApplication.processEvents()
 
 
-class MainWindow(QtGui.QWidget):
+class MainWindow(QtWidgets.QWidget):
     """
     The application's main window.
     """
@@ -34,25 +33,25 @@ class MainWindow(QtGui.QWidget):
         Initializes the window and its children GUI components.
         Also takes control of sys.stdout, for logging purposes.
         """
-        super(MainWindow, self).__init__()
-        self.dir_path_label = QtGui.QLabel('MP3 Directory:', self)
-        self.image_path_label = QtGui.QLabel('Artwork save path:', self)
-        self.album_label = QtGui.QLabel('Album title:', self)
-        self.artist_label = QtGui.QLabel('Artist name:', self)
-        self.genre_label = QtGui.QLabel('Genre:', self)
-        self.client_label = QtGui.QLabel('Preferred client:', self)
-        self.lyrics_label = QtGui.QLabel('Preferred lyrics:', self)
-        self.dir_path = QtGui.QLineEdit(self)
-        self.image_path = QtGui.QLineEdit(self)
-        self.album = QtGui.QLineEdit(self)
-        self.artist = QtGui.QLineEdit(self)
-        self.genre = QtGui.QLineEdit(self)
-        self.client = QtGui.QComboBox(self)
-        self.lyrics = QtGui.QComboBox(self)
-        self.dir_button = QtGui.QPushButton('Browse...', self)
-        self.image_button = QtGui.QPushButton('Browse...', self)
-        self.start_button = QtGui.QPushButton('Start!', self)
-        self.log_text = QtGui.QTextEdit(self)
+        super().__init__()
+        self.dir_path_label = QtWidgets.QLabel('MP3 Directory:', self)
+        self.image_path_label = QtWidgets.QLabel('Artwork save path:', self)
+        self.album_label = QtWidgets.QLabel('Album title:', self)
+        self.artist_label = QtWidgets.QLabel('Artist name:', self)
+        self.genre_label = QtWidgets.QLabel('Genre:', self)
+        self.client_label = QtWidgets.QLabel('Preferred client:', self)
+        self.lyrics_label = QtWidgets.QLabel('Preferred lyrics:', self)
+        self.dir_path = QtWidgets.QLineEdit(self)
+        self.image_path = QtWidgets.QLineEdit(self)
+        self.album = QtWidgets.QLineEdit(self)
+        self.artist = QtWidgets.QLineEdit(self)
+        self.genre = QtWidgets.QLineEdit(self)
+        self.client = QtWidgets.QComboBox(self)
+        self.lyrics = QtWidgets.QComboBox(self)
+        self.dir_button = QtWidgets.QPushButton('Browse...', self)
+        self.image_button = QtWidgets.QPushButton('Browse...', self)
+        self.start_button = QtWidgets.QPushButton('Start!', self)
+        self.log_text = QtWidgets.QTextEdit(self)
         self.init_ui()
 
     def init_ui(self):
@@ -75,7 +74,7 @@ class MainWindow(QtGui.QWidget):
         self.image_button.resize(self.image_button.sizeHint())
         self.start_button.resize(self.start_button.sizeHint())
         # Build the grid.
-        grid = QtGui.QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.setSpacing(5)
         # First row.
         grid.addWidget(self.dir_path_label, 1, 0)
@@ -115,8 +114,6 @@ class MainWindow(QtGui.QWidget):
         self.start_button.setIcon(QtGui.QIcon(str(Path('images') / 'start.png')))
         # Prepare the log window.
         self.log_text.setReadOnly(True)
-        console_handler = ConsoleLogHandler(self.log_text)
-        logger.addHandler(console_handler)
 
         self.show()
 
@@ -133,7 +130,7 @@ class MainWindow(QtGui.QWidget):
         Centers the main window.
         """
         qr = self.frameGeometry()
-        cp = QtGui.QDesktopWidget().availableGeometry().center()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
@@ -142,7 +139,7 @@ class MainWindow(QtGui.QWidget):
         Shows the directory selection dialog.
         The selected directory is then shown in the path line.
         """
-        dir_name = str(QtGui.QFileDialog.getExistingDirectory(self, 'Select Directory', '/home'))
+        dir_name = str(QtWidgets.QFileDialog.getExistingDirectory(self, 'Select Directory', '/home'))
         try:
             album_title = get_album(dir_name)
             artist_name = get_artist(dir_name)
@@ -151,8 +148,8 @@ class MainWindow(QtGui.QWidget):
             self.album.setText(album_title)
             self.artist.setText(artist_name)
         except PathException:
-            QtGui.QMessageBox.critical(self, 'Error', 'Invalid path chosen.\nPath format is:"...\\Artist\\Album".',
-                                       QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, 'Error', 'Invalid path chosen.\nPath format is:"...\\Artist\\Album".',
+                                           QtWidgets.QMessageBox.Ok)
         return dir_name
 
     def _show_image_dialog(self):
@@ -160,7 +157,7 @@ class MainWindow(QtGui.QWidget):
         Shows the artwork path selection dialog.
         The selected directory is then shown in the path line.
         """
-        dir_name = str(QtGui.QFileDialog.getExistingDirectory(self, 'Select Directory', '/home'))
+        dir_name = str(QtWidgets.QFileDialog.getExistingDirectory(self, 'Select Directory', '/home'))
         self.image_path.setText(dir_name)
         return dir_name
 
@@ -174,15 +171,23 @@ class MainWindow(QtGui.QWidget):
                          artist=str(self.artist.text()), genre=str(self.genre.text()),
                          image=str(self.image_path.text()), client=str(self.client.currentText()),
                          grabber=str(self.lyrics.currentText()))
-        organize(args)
+        handlers_list = list()
+        handlers_list.append(logbook.NullHandler())
+        handlers_list.append(logbook.StreamHandler(sys.stdout, level='DEBUG', bubble=True))
+        handlers_list.append(logbook.StreamHandler(sys.stderr, level='ERROR', bubble=True))
+        handlers_list.append(logbook.StreamHandler(stream=ConsoleLogStream(self.log_text), bubble=True,
+                                                   level=logbook.INFO))
+        with logbook.NestedSetup(handlers_list).applicationbound():
+            organize(args)
 
 
 def main():
     """
     Launches the GUI application.
     """
-    app = QtGui.QApplication(sys.argv)
-    MainWindow()
+    app = QtWidgets.QApplication(sys.argv)
+    # We have to keep the window in a variable in order to prevent the GC from deleting it.
+    window = MainWindow()
     sys.exit(app.exec_())
 
 

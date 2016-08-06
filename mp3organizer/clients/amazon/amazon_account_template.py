@@ -11,4 +11,3 @@ Good luck!
 
 ACCESS_KEY = ''
 SECRET_KEY = ''
-ASSOCIATE_TAG = ''

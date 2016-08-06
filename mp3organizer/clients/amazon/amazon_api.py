@@ -2,30 +2,22 @@ import time
 import urllib.request
 import urllib.parse
 import hmac
-import socket
 import gzip
 from base64 import b64encode
 from hashlib import sha256
-from io import StringIO
 from itertools import islice
 
 from lxml import objectify, etree
+import logbook
 
 from .amazon_exceptions import NoMorePages, SearchException, LookupException, ASINNotFound
 
-AMAZON_DEFAULT_REGION = 'US'
-AMAZON_ASSOCIATES_BASE_URL = 'http://www.amazon.{region}/dp/'
-SERVICE_DOMAINS = {
-    'CA': ('ecs.amazonaws.ca', 'xml-ca.amznxslt.com'),
-    'CN': ('webservices.amazon.cn', 'xml-cn.amznxslt.com'),
-    'DE': ('ecs.amazonaws.de', 'xml-de.amznxslt.com'),
-    'ES': ('webservices.amazon.es', 'xml-es.amznxslt.com'),
-    'FR': ('ecs.amazonaws.fr', 'xml-fr.amznxslt.com'),
-    'IT': ('webservices.amazon.it', 'xml-it.amznxslt.com'),
-    'JP': ('ecs.amazonaws.jp', 'xml-jp.amznxslt.com'),
-    'UK': ('ecs.amazonaws.co.uk', 'xml-uk.amznxslt.com'),
-    'US': ('ecs.amazonaws.com', 'xml-us.amznxslt.com')
-}
+REGION = 'com'
+SERVICE_DOMAIN = 'ecs.amazonaws.com'
+VERSION = '2013-08-01'
+DEFAULT_TIMEOUT = 20
+
+logger = logbook.Logger('AmazonClient')
 
 
 class AmazonAPI(object):
@@ -33,21 +25,18 @@ class AmazonAPI(object):
     An API for querying the Amazon Web Service.
     """
 
-    def __init__(self, access_key, secret_key, associate_tag,
-                 region=AMAZON_DEFAULT_REGION, timeout=None):
+    def __init__(self, access_key, secret_key, associate_tag, timeout=DEFAULT_TIMEOUT):
         """
         Initialize the Amazon API Proxy.
 
         :param access_key: The AWS authentication key.
         :param secret_key: The AWS authentication secret.
         :param associate_tag: The AWS associate tag.
-        :param region: The region, defaulting to "US" (amazon.com)
         :param timeout: The timeout (in seconds) for the request.
         """
         self.access_key = access_key
         self.secret_key = secret_key
         self.associate_tag = associate_tag
-        self.region = region
         self.timeout = timeout
 
     def _call(self, operation, **kwargs):
@@ -61,30 +50,25 @@ class AmazonAPI(object):
         kwargs['Timestamp'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
         kwargs['Operation'] = operation
         kwargs['AWSAccessKeyId'] = self.access_key
+        kwargs['AssociateTag'] = self.associate_tag
         kwargs['Service'] = 'AWSECommerceService'
-        if self.associate_tag:
-            kwargs['AssociateTag'] = self.associate_tag
-        service_domain = SERVICE_DOMAINS[self.region][0]
-        keys = sorted(kwargs.keys())
+        kwargs['Version'] = VERSION
 
         quoted_strings = '&'.join('{}={}'.format(k, urllib.parse.quote(
-            str(kwargs[k]).encode('UTF-8'), safe='~')) for k in keys)
-        data = 'GET\n{}\n/onca/xml\n{}'.format(service_domain, quoted_strings)
+            str(kwargs[k]).encode('UTF-8'), safe='~')) for k in sorted(kwargs.keys()))
+        data = 'GET\n{}\n/onca/xml\n{}'.format(SERVICE_DOMAIN, quoted_strings)
 
         digest = hmac.new(self.secret_key.encode('UTF-8'), data.encode('UTF-8'), sha256).digest()
         signature = urllib.parse.quote(b64encode(digest))
 
-        api_string = 'http://{}/onca/xml?{}&Signature={}'.format(service_domain, quoted_strings, signature)
+        api_string = 'http://{}/onca/xml?{}&Signature={}'.format(SERVICE_DOMAIN, quoted_strings, signature)
+        logger.debug('Connecting to: {}'.format(api_string))
         api_request = urllib.request.Request(api_string, headers={'Accept-Encoding': 'gzip'})
-        if self.timeout:
-            socket.setdefaulttimeout(self.timeout)
-        response = urllib.request.urlopen(api_request)
-        if self.timeout:
-            socket.setdefaulttimeout(None)
 
-        if 'gzip' in response.info().getheader('Content-Encoding'):
-            gzipped_file = gzip.GzipFile(fileobj=StringIO(response.read()))
-            response_text = gzipped_file.read()
+        response = urllib.request.urlopen(api_request, timeout=self.timeout)
+
+        if 'gzip' in response.info().get('Content-Encoding'):
+            response_text = gzip.decompress(response.read())
         else:
             response_text = response.read()
         return response_text
@@ -125,11 +109,9 @@ class AmazonAPI(object):
         if not hasattr(root.Items, 'Item'):
             raise ASINNotFound('ASIN(s) not found: "{}"'.format(etree.tostring(root, pretty_print=True)))
         if len(root.Items.Item) > 1:
-            return [AmazonProduct(item, self.associate_tag, self,
-                                  region=self.region) for item in root.Items.Item]
+            return [AmazonProduct(item, self) for item in root.Items.Item]
         else:
-            return AmazonProduct(root.Items.Item, self.associate_tag, self,
-                                 region=self.region)
+            return AmazonProduct(root.Items.Item, self)
 
     def search_items(self, **kwargs):
         """
@@ -137,7 +119,7 @@ class AmazonAPI(object):
 
         :return: An :class:`~.AmazonSearch` iterable.
         """
-        return AmazonSearch(self, self.associate_tag, **kwargs)
+        return AmazonSearch(self, **kwargs)
 
     def search_items_limited(self, limit, **kwargs):
         """
@@ -160,7 +142,6 @@ class AmazonSearch(object):
         Initialize a search.
 
         :param api: An instance of :class:`~.AmazonAPI`.
-        :param associate_tag: An string representing an Amazon associates tag.
         """
         self.kwargs = kwargs
         self.current_page = 1
@@ -174,7 +155,7 @@ class AmazonSearch(object):
         """
         for page in self.iterate_pages():
             for item in getattr(page.Items, 'Item', []):
-                yield AmazonProduct(item, self.api.associate_tag, self.api)
+                yield AmazonProduct(item, self.api)
 
     def iterate_pages(self):
         """
@@ -196,23 +177,16 @@ class AmazonProduct(object):
     A wrapper class for an Amazon product.
     """
 
-    def __init__(self, item, aws_associate_tag, api, **kwargs):
+    def __init__(self, item, api):
         """
         Initialize an Amazon Product Proxy.
 
         :param item: The item to work with.
         """
         self.item = item
-        self.aws_associate_tag = aws_associate_tag
         self.api = api
         self.parent = None
-        if 'region' in kwargs:
-            if kwargs['region'] != AMAZON_DEFAULT_REGION:
-                self.region = kwargs['region']
-            else:
-                self.region = 'com'
-        else:
-            self.region = 'com'
+        self.region = REGION
 
     def to_string(self):
         """
@@ -308,14 +282,6 @@ class AmazonProduct(object):
         The Amazon ID.
         """
         return self._safe_get_element_text('ASIN')
-
-    @property
-    def offer_url(self):
-        """
-        The offer's URL address.
-        """
-        return '{}{}/?tag={}'.format(AMAZON_ASSOCIATES_BASE_URL.format(
-            region=self.region.lower()), self.asin, self.aws_associate_tag)
 
     @property
     def authors(self):
